@@ -2,259 +2,114 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>F16 Dark Mode - Multiplayer (Alpha)</title>
+    <title>F16 Dark Mode - Multiplayer FULL</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* --- PİLOT PANELİ (HUD) --- */
+        /* --- GİRİŞ EKRANI (LOGIN) --- */
+        #loginScreen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; color: #00ff00;
+        }
+        #loginScreen h1 {
+            font-size: 60px; font-family: 'Arial Black', sans-serif;
+            text-shadow: 0 0 20px #00ff00; margin-bottom: 20px; letter-spacing: 3px;
+        }
+        #usernameInput {
+            padding: 15px; font-size: 24px; border: 2px solid #00ff00;
+            background: #001100; color: #fff; border-radius: 5px;
+            width: 300px; text-align: center; outline: none; font-family: monospace;
+        }
+        #startBtn {
+            margin-top: 20px; padding: 15px 40px; font-size: 24px;
+            background: #00ff00; color: #000; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: bold; transition: transform 0.2s;
+        }
+        #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 20px #00ff00; }
+
+        /* --- HUD --- */
         #hud {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 280px;
-            padding: 15px;
-            color: #00ff00;
-            background-color: rgba(0, 10, 0, 0.9);
-            background-image: 
-                linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
-            background-size: 20px 20px;
-            border: 2px solid #00ff00;
-            border-radius: 10px;
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.15);
-            user-select: none;
-            z-index: 100;
+            display: none; /* Giriş yapmadan görünmesin */
+            position: absolute; top: 20px; left: 20px; width: 280px; padding: 15px;
+            color: #00ff00; background-color: rgba(0, 10, 0, 0.9);
+            border: 2px solid #00ff00; border-radius: 10px;
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.15); user-select: none; z-index: 100;
         }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(0, 255, 0, 0.5);
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            font-size: 14px;
-        }
-
-        .rec-dot {
-            width: 10px;
-            height: 10px;
-            background-color: red;
-            border-radius: 50%;
-            display: inline-block;
-            animation: blink 1s infinite;
-            margin-right: 5px;
-            box-shadow: 0 0 5px red;
-        }
+        .panel-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0, 255, 0, 0.5); padding-bottom: 8px; margin-bottom: 15px; font-weight: bold; }
+        .rec-dot { width: 10px; height: 10px; background: red; border-radius: 50%; display: inline-block; animation: blink 1s infinite; margin-right: 5px; }
         @keyframes blink { 50% { opacity: 0.3; } }
-
-        .score-box {
-            border: 1px solid #00ff00;
-            background: rgba(0, 60, 0, 0.6);
-            padding: 10px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            box-shadow: inset 0 0 10px rgba(0,255,0,0.2);
-        }
-        .score-label { color: #ffd700; font-size: 13px; font-weight: bold; }
-        .score-val { color: #ffd700; font-size: 28px; font-weight: bold; font-family: 'Courier New', Courier, monospace; text-shadow: 0 0 8px #ffd700; }
-
-        .health-label { font-size: 12px; margin-bottom: 5px; display: flex; justify-content: space-between; color: #ccffcc; }
-        .health-track {
-            width: 100%;
-            height: 14px;
-            background: #000;
-            border-radius: 2px;
-            overflow: hidden;
-            border: 1px solid #004400;
-            margin-bottom: 20px;
-        }
-        #healthBar {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #00ff00, #aaff00);
-            transition: width 0.2s ease;
-            box-shadow: 0 0 10px #00ff00;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .stat-box {
-            background: #000;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            padding: 8px;
-            text-align: center;
-        }
-        .stat-label { font-size: 10px; color: #88ff88; margin-bottom: 2px; }
-        .stat-value { font-size: 22px; font-weight: bold; font-family: 'Courier New', Courier, monospace; color: #fff; }
-
-        .panel-footer {
-            margin-top: 15px;
-            font-size: 10px;
-            text-align: center;
-            color: rgba(0, 255, 0, 0.6);
-            border-top: 1px solid rgba(0, 255, 0, 0.2);
-            padding-top: 5px;
-        }
-
-        #brand {
-            position: absolute;
-            top: 30px;
-            right: 40px;
-            font-family: 'Arial Black', 'Impact', sans-serif;
-            font-size: 48px;
-            color: #ffffff;
-            text-shadow: 
-                3px 3px 0px #003300,
-                0 0 25px #00ff00,
-                0 0 50px #00ff00;
-            pointer-events: none;
-            z-index: 100;
-            letter-spacing: 2px;
-        }
+        .score-box { border: 1px solid #00ff00; background: rgba(0, 60, 0, 0.6); padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .score-val { color: #ffd700; font-size: 28px; font-weight: bold; font-family: monospace; }
+        .health-track { width: 100%; height: 14px; background: #000; border: 1px solid #004400; margin-bottom: 20px; }
+        #healthBar { height: 100%; width: 100%; background: linear-gradient(90deg, #00ff00, #aaff00); transition: width 0.2s ease; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-box { background: #000; border: 1px solid #00ff00; padding: 8px; text-align: center; }
+        .stat-value { font-size: 22px; font-weight: bold; font-family: monospace; color: #fff; }
         
-        #status {
-            position: absolute;
-            bottom: 10px;
-            left: 20px;
-            color: white;
-            font-family: monospace;
-            font-size: 12px;
-            z-index: 101;
-            opacity: 0.7;
-        }
-
-        #damageOverlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 50%, red 150%);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.1s;
-            z-index: 50;
-        }
-        
-        #message {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: #ff3333;
-            font-family: 'Arial Black', sans-serif;
-            font-size: 40px;
-            text-transform: uppercase;
-            text-shadow: 3px 3px 0 #000;
-            display: none;
-            z-index: 101;
-            background: rgba(0,0,0,0.9);
-            padding: 30px;
-            border: 4px solid red;
-            text-align: center;
-        }
-
-        .score-popup {
-            position: absolute;
-            color: #ffd700;
-            font-weight: bold;
-            font-size: 30px;
-            font-family: 'Arial Black', sans-serif;
-            text-shadow: 2px 2px 0 #000, 0 0 15px orange;
-            animation: floatUp 1s ease-out forwards;
-            pointer-events: none;
-            z-index: 102;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
-        }
+        #brand { position: absolute; top: 30px; right: 40px; font-family: 'Arial Black'; font-size: 48px; color: #ffffff; text-shadow: 0 0 25px #00ff00; pointer-events: none; z-index: 100; }
+        #damageOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, red 150%); opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 50; }
+        #message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff3333; font-family: 'Arial Black'; font-size: 40px; display: none; z-index: 101; background: rgba(0,0,0,0.9); padding: 30px; border: 4px solid red; }
+        .score-popup { position: absolute; color: #ffd700; font-weight: bold; font-size: 30px; font-family: 'Arial Black'; text-shadow: 0 0 15px orange; animation: floatUp 1s ease-out forwards; pointer-events: none; z-index: 102; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.2); opacity: 0; } }
     </style>
 </head>
 <body>
+    <!-- YENİ: GİRİŞ EKRANI -->
+    <div id="loginScreen">
+        <h1>EGGAPPS F16</h1>
+        <input type="text" id="usernameInput" placeholder="PİLOT ADI GİRİN" maxlength="12">
+        <button id="startBtn">UÇUŞA BAŞLA</button>
+    </div>
+
     <div id="damageOverlay"></div>
     <div id="message">⚠️ KURTARMA SİSTEMİ DEVREDE</div>
     <div id="brand">Eggapps</div>
-    <div id="status">Bağlantı Kuruluyor...</div>
 
     <div id="hud">
         <div class="panel-header">
-            <span>✈ PİLOT PANELİ v3.1</span>
-            <span style="font-size: 10px; color: #ff5555;"><span class="rec-dot"></span>ONLINE</span>
+            <span id="pilotNameDisplay">PİLOT PANELİ</span>
+            <span style="font-size: 10px; color: #ff5555;"><span class="rec-dot"></span>LIVE</span>
         </div>
-
         <div class="score-box">
             <span class="score-label">TOPLAM SKOR</span>
             <span class="score-val" id="scoreDisplay">0</span>
         </div>
-
-        <div class="health-label">
-            <span>GÖVDE SAĞLIĞI</span>
-            <span id="hpText">100%</span>
-        </div>
-        <div class="health-track">
-            <div id="healthBar"></div>
-        </div>
-
+        <div class="health-label"><span>GÖVDE SAĞLIĞI</span><span id="hpText">100%</span></div>
+        <div class="health-track"><div id="healthBar"></div></div>
         <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-label">HIZ (KM/H)</div>
-                <div class="stat-value" id="speedDisplay">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">İRTİFA (M)</div>
-                <div class="stat-value" id="altDisplay">0</div>
-            </div>
-        </div>
-
-        <div class="panel-footer">
-            EGGAPPS FLIGHT SYSTEM - DARK EDITION
+            <div class="stat-box"><div class="stat-label">HIZ (KM/H)</div><div class="stat-value" id="speedDisplay">0</div></div>
+            <div class="stat-box"><div class="stat-label">İRTİFA (M)</div><div class="stat-value" id="altDisplay">0</div></div>
         </div>
     </div>
 
-    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-    <!-- ANA OYUN VE FIREBASE ENTEGRASYONU -->
     <script type="module">
-        // --- FIREBASE IMPORTLARI ---
+        // --- FIREBASE IMPORTLARI (onValue EKLENDİ) ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onDisconnect, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- FIREBASE AYARLARI ---
         const firebaseConfig = {
             apiKey: "AIzaSyConJs82OWJReQWyyyWr00NTdBH9lAsEtQ",
             authDomain: "laf-sokucuu.firebaseapp.com",
-            // Not: databaseURL eksik gelirse varsayılan budur, çalışmazsa konsola bak:
             databaseURL: "https://laf-sokucuu-default-rtdb.firebaseio.com",
             projectId: "laf-sokucuu",
             storageBucket: "laf-sokucuu.firebasestorage.app",
             messagingSenderId: "943728190079",
-            appId: "1:943728190079:web:0a94e6b9ddb19bd6c9954a",
-            measurementId: "G-E3P3BGZ82G"
+            appId: "1:943728190079:web:0a94e6b9ddb19bd6c9954a"
         };
 
-        // Firebase Başlat
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Oyuncu Kimliği Oluştur (pilot_rastgeleSayi)
-        const playerId = 'pilot_' + Math.random().toString(36).substr(2, 5);
-        console.log("Senin Pilot ID'n: " + playerId);
-        document.getElementById('status').innerText = "ID: " + playerId + " | Sunucuya Bağlı";
-
-        // Oyuncu Referansı (Veritabanında nereye yazacağız?)
-        const playerRef = ref(db, 'players/' + playerId);
-
-        // Oyundan çıkarsa (sekme kapanırsa) veriyi sil
-        onDisconnect(playerRef).remove();
+        // --- OYUN DEĞİŞKENLERİ ---
+        let gameActive = false;
+        let myPlayerId = null;
+        let myName = "Pilot";
+        let playerRef = null;
+        const otherPlayers = {}; // Diğer oyuncuların mesh'lerini tutar
 
         // --- 1. SAHNE KURULUMU ---
         const scene = new THREE.Scene();
@@ -270,23 +125,16 @@
 
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5); 
         scene.add(hemiLight);
-        
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8); 
         dirLight.position.set(200, 500, 300);
         dirLight.castShadow = true;
-        dirLight.shadow.camera.top = 1000;
-        dirLight.shadow.camera.bottom = -1000;
-        dirLight.shadow.camera.left = -1000;
-        dirLight.shadow.camera.right = 1000;
         scene.add(dirLight);
 
-        const groundGeo = new THREE.PlaneGeometry(60000, 60000);
-        const groundMat = new THREE.MeshPhongMaterial({ color: 0x1a1a1a }); 
-        const ground = new THREE.Mesh(groundGeo, groundMat);
+        // Zemin
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(60000, 60000), new THREE.MeshPhongMaterial({ color: 0x1a1a1a }));
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
         scene.add(ground);
-
         const grid = new THREE.GridHelper(60000, 600, 0x000000, 0x222222);
         grid.position.y = 0.2;
         scene.add(grid);
@@ -298,34 +146,21 @@
         const mat2 = new THREE.MeshPhongMaterial({ color: 0x151515 }); 
         const mat3 = new THREE.MeshPhongMaterial({ color: 0x34495e }); 
 
-        const BUILDING_COUNT = 1500; 
-
-        for(let i=0; i<BUILDING_COUNT; i++) {
+        for(let i=0; i<1500; i++) {
             const w = 40 + Math.random() * 60;
             const h = 100 + Math.random() * 500;
             const d = 40 + Math.random() * 60;
-            
             let mat = mat1;
-            const r = Math.random();
-            if(r > 0.6) mat = mat2;
-            else if(r > 0.3) mat = mat3;
-
+            if(Math.random() > 0.6) mat = mat2; else if(Math.random() > 0.3) mat = mat3;
             const building = new THREE.Mesh(buildingGeometry, mat);
             building.scale.set(w, h, d);
-            
             let x = (Math.random() - 0.5) * 9000; 
             let z = (Math.random() - 0.5) * 9000;
-            
             if(Math.abs(x) < 600 && Math.abs(z) < 3000) x += 1200; 
-
             building.position.set(x, h/2, z);
             building.castShadow = true;
-            building.receiveShadow = true;
-            
             building.updateMatrixWorld(); 
-            const box = new THREE.Box3().setFromObject(building);
-            buildingBoxes.push(box);
-            
+            buildingBoxes.push(new THREE.Box3().setFromObject(building));
             scene.add(building);
         }
 
@@ -333,153 +168,148 @@
         let score = 0;
         const collectables = [];
         const collectableGeo = new THREE.IcosahedronGeometry(6, 2);
-        const collectableMat = new THREE.MeshPhongMaterial({ 
-            color: 0xFFD700, 
-            emissive: 0xFFAA00, 
-            emissiveIntensity: 0.8, 
-            shininess: 100
-        });
+        const collectableMat = new THREE.MeshPhongMaterial({ color: 0xFFD700, emissive: 0xFFAA00, emissiveIntensity: 0.8 });
 
         function spawnCollectable() {
-            let validPosition = false;
-            let tempPos = new THREE.Vector3();
-            let scale = 0;
-            let attempts = 0;
-
-            while (!validPosition && attempts < 50) {
+            let valid = false, tempPos = new THREE.Vector3(), attempts=0;
+            while (!valid && attempts < 50) {
                 attempts++;
-                scale = 1.5 + Math.random() * 1.5; 
-                tempPos.set(
-                    (Math.random() - 0.5) * 8000,
-                    50 + Math.random() * 500,
-                    (Math.random() - 0.5) * 8000
-                );
-                const testBox = new THREE.Box3().setFromCenterAndSize(tempPos, new THREE.Vector3(30, 30, 30));
-                let intersects = false;
-                for(let box of buildingBoxes) {
-                    if(testBox.intersectsBox(box)) {
-                        intersects = true;
-                        break;
-                    }
-                }
-                if(!intersects) validPosition = true;
+                tempPos.set((Math.random()-0.5)*8000, 50+Math.random()*500, (Math.random()-0.5)*8000);
+                let testBox = new THREE.Box3().setFromCenterAndSize(tempPos, new THREE.Vector3(30,30,30));
+                if(!buildingBoxes.some(b => testBox.intersectsBox(b))) valid = true;
             }
-
-            if(validPosition) {
+            if(valid) {
                 const mesh = new THREE.Mesh(collectableGeo, collectableMat);
                 mesh.position.copy(tempPos);
-                mesh.scale.set(scale, scale, scale);
-                mesh.userData = { points: 100, rotationSpeed: 0.01 + Math.random() * 0.02 };
+                mesh.scale.setScalar(1.5 + Math.random() * 1.5);
+                mesh.userData = { points: 100 };
                 scene.add(mesh);
                 collectables.push(mesh);
             }
         }
-
         for(let i=0; i<100; i++) spawnCollectable();
         setInterval(spawnCollectable, 5000);
 
         function showScorePopup(points) {
             const div = document.createElement('div');
-            div.className = 'score-popup';
-            div.innerText = "+" + points;
-            div.style.left = (window.innerWidth / 2 - 50 + (Math.random()*100)) + 'px';
-            div.style.top = (window.innerHeight / 2 - 100) + 'px';
+            div.className = 'score-popup'; div.innerText = "+" + points;
+            div.style.left = (window.innerWidth/2 - 50 + Math.random()*100) + 'px';
+            div.style.top = (window.innerHeight/2 - 100) + 'px';
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 1000);
         }
 
-        // --- 4. UÇAK MODELİ ---
-        const planeGroup = new THREE.Group();
-        const body = new THREE.Mesh(new THREE.ConeGeometry(1.5, 18, 32), new THREE.MeshStandardMaterial({ color: 0x78909c, roughness: 0.3 }));
-        body.rotation.x = -Math.PI / 2;
-        body.castShadow = true;
-        planeGroup.add(body);
+        // --- 4. UÇAK OLUŞTURUCU (Hem bizim hem düşmanlar için) ---
+        function createPlaneMesh(bodyColor, wingColor) {
+            const grp = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.ConeGeometry(1.5, 18, 32), new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.3 }));
+            body.rotation.x = -Math.PI / 2; grp.add(body);
+            const wings = new THREE.Mesh(new THREE.BoxGeometry(16, 0.4, 8), new THREE.MeshStandardMaterial({ color: wingColor, roughness: 0.3 }));
+            wings.position.z = 2; grp.add(wings);
+            const tail = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 4), new THREE.MeshStandardMaterial({ color: wingColor }));
+            tail.position.set(0, 0, 7); grp.add(tail);
+            const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.4, 5, 4), new THREE.MeshStandardMaterial({ color: wingColor }));
+            vTail.position.set(0, 2, 7); grp.add(vTail);
+            return grp;
+        }
+
+        // BİZİM UÇAĞIMIZ (Mavi/Gri)
+        const planeGroup = createPlaneMesh(0x78909c, 0x546e7a);
+        const cockpit = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), new THREE.MeshPhongMaterial({ color: 0x000000 }));
+        cockpit.position.set(0, 1.2, -2); cockpit.scale.set(1, 0.6, 2.5); planeGroup.add(cockpit);
         
-        const wings = new THREE.Mesh(new THREE.BoxGeometry(16, 0.4, 8), new THREE.MeshStandardMaterial({ color: 0x546e7a, roughness: 0.3 }));
-        wings.position.z = 2;
-        wings.castShadow = true;
-        planeGroup.add(wings);
-
-        const tail = new THREE.Mesh(new THREE.BoxGeometry(6, 0.4, 4), new THREE.MeshStandardMaterial({ color: 0x546e7a }));
-        tail.position.set(0, 0, 7);
-        planeGroup.add(tail);
-
-        const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.4, 5, 4), new THREE.MeshStandardMaterial({ color: 0x546e7a }));
-        vTail.position.set(0, 2, 7);
-        planeGroup.add(vTail);
-
-        const cockpit = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), new THREE.MeshPhongMaterial({ color: 0x000000, shininess: 150 }));
-        cockpit.position.set(0, 1.2, -2);
-        cockpit.scale.set(1, 0.6, 2.5);
-        planeGroup.add(cockpit);
-
         const flame = new THREE.Mesh(new THREE.ConeGeometry(1, 6, 16), new THREE.MeshBasicMaterial({ color: 0x00ffff }));
-        flame.rotation.x = Math.PI / 2;
-        flame.position.z = 11;
-        flame.visible = false;
-        planeGroup.add(flame);
-
+        flame.rotation.x = Math.PI / 2; flame.position.z = 11; flame.visible = false; planeGroup.add(flame);
+        
         scene.add(planeGroup);
         planeGroup.position.set(0, 2, 0);
         planeGroup.rotation.order = 'YXZ';
-
         const playerBox = new THREE.Box3();
+
+        // --- GİRİŞ SİSTEMİ ve EVENTLER ---
+        document.getElementById('startBtn').addEventListener('click', () => {
+            const inputVal = document.getElementById('usernameInput').value;
+            if(!inputVal.trim()) { alert("İsim yazmadan uçamazsın!"); return; }
+            
+            myName = inputVal;
+            myPlayerId = 'pilot_' + Math.random().toString(36).substr(2, 5);
+            
+            // UI Güncelle
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('hud').style.display = 'block';
+            document.getElementById('pilotNameDisplay').innerText = myName.toUpperCase() + " (SEN)";
+            
+            // Firebase Kayıt
+            playerRef = ref(db, 'players/' + myPlayerId);
+            onDisconnect(playerRef).remove();
+            
+            // Başkalarını Dinle
+            const allPlayersRef = ref(db, 'players');
+            onValue(allPlayersRef, (snapshot) => {
+                const players = snapshot.val() || {};
+                
+                // 1. Yeni gelenleri ekle veya hareket ettir
+                Object.keys(players).forEach((key) => {
+                    if (key === myPlayerId) return; // Kendimizi çizme
+                    
+                    const pData = players[key];
+                    if (!otherPlayers[key]) {
+                        // Yeni düşman uçağı (Kırmızı)
+                        const enemyPlane = createPlaneMesh(0xff0000, 0x880000);
+                        scene.add(enemyPlane);
+                        otherPlayers[key] = enemyPlane;
+                    }
+                    // Konum güncelle
+                    const enemy = otherPlayers[key];
+                    enemy.position.set(pData.x, pData.y, pData.z);
+                    enemy.rotation.set(pData.rx, pData.ry, pData.rz);
+                });
+
+                // 2. Çıkanları sil
+                Object.keys(otherPlayers).forEach((key) => {
+                    if (!players[key]) {
+                        scene.remove(otherPlayers[key]);
+                        delete otherPlayers[key];
+                    }
+                });
+            });
+
+            gameActive = true;
+            animate();
+        });
 
         // --- 5. OYUN MANTIĞI ---
         let health = 100;
         let lastDamageTime = 0;
         let speed = 0;
         const keys = { w: false, up: false, down: false, left: false, right: false };
-        
-        const maxSpeed = 12.0; 
-        const acceleration = 0.08;
-        const liftSpeed = 3.0;
-        const PITCH_SPEED = 0.02; 
-        const TURN_SPEED = 0.015;
-        const ROLL_MAX = 0.8;
-        const PITCH_MAX = 1.0; 
+        const maxSpeed = 12.0, liftSpeed = 3.0;
 
         function resetGame() {
-            planeGroup.position.set(0, 2, 0);
-            planeGroup.rotation.set(0, 0, 0);
-            speed = 0;
-            health = 100;
-            score = 0;
+            planeGroup.position.set(0, 2, 0); planeGroup.rotation.set(0, 0, 0);
+            speed = 0; health = 100; score = 0;
             document.getElementById('scoreDisplay').innerText = 0;
-            keys.w = false; keys.up = false; keys.down = false; keys.left = false; keys.right = false;
             updateHealthUI();
-            setTimeout(() => { alert("UÇAK DÜŞTÜ! SİMÜLASYON YENİDEN BAŞLATILIYOR..."); }, 100);
+            alert("DÜŞTÜNÜZ! YENİDEN BAŞLATILIYOR...");
         }
 
         function takeDamage(amount) {
-            health -= amount;
-            lastDamageTime = Date.now();
-            const overlay = document.getElementById('damageOverlay');
-            overlay.style.opacity = 0.8;
-            setTimeout(() => overlay.style.opacity = 0, 200);
+            health -= amount; lastDamageTime = Date.now();
+            document.getElementById('damageOverlay').style.opacity = 0.8;
+            setTimeout(() => document.getElementById('damageOverlay').style.opacity = 0, 200);
             updateHealthUI();
-            if(health <= 0) { health = 0; resetGame(); }
+            if(health <= 0) resetGame();
         }
 
         function updateHealthUI() {
-            const hpText = document.getElementById('hpText');
-            const healthBar = document.getElementById('healthBar');
-            hpText.innerText = Math.round(health) + "%";
-            healthBar.style.width = health + "%";
-            
-            if(health > 50) {
-                healthBar.style.background = "linear-gradient(90deg, #00ff00, #aaff00)";
-                hpText.style.color = "#ccffcc";
-            } else if(health > 20) {
-                healthBar.style.background = "linear-gradient(90deg, #ffa500, #ffcc00)";
-                hpText.style.color = "#ffcc00";
-            } else {
-                healthBar.style.background = "linear-gradient(90deg, #ff0000, #ff5500)";
-                hpText.style.color = "#ff5555";
-            }
+            document.getElementById('hpText').innerText = Math.round(health) + "%";
+            document.getElementById('healthBar').style.width = health + "%";
+            const bar = document.getElementById('healthBar');
+            if(health > 50) bar.style.background = "linear-gradient(90deg, #00ff00, #aaff00)";
+            else if(health > 20) bar.style.background = "linear-gradient(90deg, #ffa500, #ffcc00)";
+            else bar.style.background = "linear-gradient(90deg, #ff0000, #ff5500)";
         }
 
-        // --- 6. KLAVYE ---
         document.addEventListener('keydown', (e) => {
             if(e.key === 'w' || e.key === 'W') keys.w = true;
             if(e.key === 'ArrowUp') keys.up = true;
@@ -495,134 +325,102 @@
             if(e.key === 'ArrowRight') keys.right = false;
         });
 
-        // --- 7. ANA DÖNGÜ ---
-        let frameCount = 0; // Veri gönderme sıklığını kontrol etmek için
+        // --- 6. ANA DÖNGÜ ---
+        let frameCount = 0;
 
         function animate() {
+            if(!gameActive) return; // Giriş yapmadan oyun dönmez
             requestAnimationFrame(animate);
 
+            // Can yenileme
             if (health > 0 && health < 100 && Date.now() - lastDamageTime > 10000) {
-                health += 0.1;
-                if(health > 100) health = 100;
-                updateHealthUI();
+                health += 0.1; updateHealthUI();
             }
 
-            if (keys.w) {
-                speed += acceleration;
-                flame.visible = true;
-                flame.scale.setScalar(0.8 + Math.random()*0.4);
-            } else {
-                flame.visible = false;
-                speed -= 0.005; 
-            }
-            if(speed > maxSpeed) speed = maxSpeed;
-            if(speed < 0) speed = 0;
+            // Hareket
+            if (keys.w) { speed += 0.08; flame.visible = true; flame.scale.setScalar(0.8+Math.random()*0.4); }
+            else { flame.visible = false; speed -= 0.005; }
+            if(speed > maxSpeed) speed = maxSpeed; if(speed < 0) speed = 0;
 
             const oldPosition = planeGroup.position.clone();
             planeGroup.translateZ(-speed);
 
-            // --- FIREBASE DATA GÖNDERİMİ (HER 3 FRAME'DE BİR) ---
+            // FIREBASE GÖNDERİM (3 karede bir)
             frameCount++;
-            if(frameCount % 3 === 0) {
+            if(frameCount % 3 === 0 && playerRef) {
                 set(playerRef, {
+                    name: myName,
                     x: planeGroup.position.x,
                     y: planeGroup.position.y,
                     z: planeGroup.position.z,
                     rx: planeGroup.rotation.x,
                     ry: planeGroup.rotation.y,
                     rz: planeGroup.rotation.z,
-                    timestamp: Date.now()
                 });
             }
 
+            // Çarpışma (Puan)
             for (let i = collectables.length - 1; i >= 0; i--) {
                 const item = collectables[i];
                 item.rotation.x += 0.02;
-                item.rotation.y += 0.02;
-                
                 const dist = planeGroup.position.distanceTo(item.position);
-                const hitRadius = 20 + (item.scale.x * 5); 
-
-                if (dist < hitRadius) {
+                if (dist < 25) {
                     score += item.userData.points;
                     document.getElementById('scoreDisplay').innerText = score;
                     showScorePopup(item.userData.points);
-                    scene.remove(item);
-                    collectables.splice(i, 1);
+                    scene.remove(item); collectables.splice(i, 1);
                 }
             }
 
-            playerBox.setFromObject(planeGroup);
-            playerBox.expandByScalar(-1.0); 
-
-            let crash = false;
+            // Çarpışma (Bina)
+            playerBox.setFromObject(planeGroup).expandByScalar(-1.0);
             if (planeGroup.position.y < 600) { 
-                for (let i = 0; i < buildingBoxes.length; i++) {
-                    if (playerBox.intersectsBox(buildingBoxes[i])) {
-                        crash = true;
+                for (let box of buildingBoxes) {
+                    if (playerBox.intersectsBox(box)) {
+                        takeDamage(20);
+                        planeGroup.position.copy(oldPosition);
+                        planeGroup.translateZ(30); planeGroup.position.y += 150; planeGroup.rotation.set(0,0,0);
+                        if (speed < liftSpeed) speed = liftSpeed;
+                        const msg = document.getElementById('message');
+                        msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 2000);
                         break;
                     }
                 }
             }
 
-            if (crash) {
-                takeDamage(20);
-                planeGroup.position.copy(oldPosition);
-                planeGroup.translateZ(30); 
-                planeGroup.position.y += 150;
-                planeGroup.rotation.set(0,0,0);
-                if (speed < liftSpeed) speed = liftSpeed;
-                const msg = document.getElementById('message');
-                msg.style.display = 'block';
-                setTimeout(() => msg.style.display = 'none', 2000);
-            }
-
+            // Kontroller
             if (speed > 0.5 && health > 0) {
-                if(keys.up && planeGroup.rotation.x < PITCH_MAX) planeGroup.rotation.x += PITCH_SPEED;
-                if(keys.down && planeGroup.rotation.x > -PITCH_MAX) planeGroup.rotation.x -= PITCH_SPEED;
-                if (keys.left) {
-                    planeGroup.rotateY(TURN_SPEED);
-                    if (planeGroup.rotation.z < ROLL_MAX) planeGroup.rotation.z += 0.03;
-                } 
-                else if (keys.right) {
-                    planeGroup.rotateY(-TURN_SPEED);
-                    if (planeGroup.rotation.z > -ROLL_MAX) planeGroup.rotation.z -= 0.03;
-                } 
+                if(keys.up && planeGroup.rotation.x < 1.0) planeGroup.rotation.x += 0.02;
+                if(keys.down && planeGroup.rotation.x > -1.0) planeGroup.rotation.x -= 0.02;
+                if (keys.left) { planeGroup.rotateY(0.015); if (planeGroup.rotation.z < 0.8) planeGroup.rotation.z += 0.03; } 
+                else if (keys.right) { planeGroup.rotateY(-0.015); if (planeGroup.rotation.z > -0.8) planeGroup.rotation.z -= 0.03; } 
                 else {
                     if (planeGroup.rotation.z > 0.005) planeGroup.rotation.z -= 0.015;
                     else if (planeGroup.rotation.z < -0.005) planeGroup.rotation.z += 0.015;
                 }
             }
 
+            // Fizik (Basit)
             if (planeGroup.position.y > 2) {
                 if (speed < liftSpeed) {
-                    const gravityRatio = 1 - (speed / liftSpeed);
-                    planeGroup.position.y -= 1.5 * gravityRatio; 
+                    planeGroup.position.y -= 1.5 * (1 - speed/liftSpeed);
                     if(planeGroup.rotation.x > -0.5) planeGroup.rotation.x -= 0.01;
                 }
             } else {
                 if (planeGroup.position.y <= 2) {
                     planeGroup.position.y = 2;
-                    if (planeGroup.rotation.x < -0.2) { 
-                         takeDamage(10);
-                         speed = 0; 
-                    }
-                    if(speed < liftSpeed) {
-                        planeGroup.rotation.z *= 0.9;
-                        planeGroup.rotation.x *= 0.9;
-                    }
+                    if (planeGroup.rotation.x < -0.2) { takeDamage(10); speed = 0; }
+                    if(speed < liftSpeed) { planeGroup.rotation.z *= 0.9; planeGroup.rotation.x *= 0.9; }
                 }
             }
 
-            const camOffset = new THREE.Vector3(0, 12, 45); 
-            const targetPos = camOffset.applyMatrix4(planeGroup.matrixWorld);
+            // Kamera
+            const targetPos = new THREE.Vector3(0, 12, 45).applyMatrix4(planeGroup.matrixWorld);
             camera.position.lerp(targetPos, 0.1);
-            const lookAtPos = new THREE.Vector3(0, 0, -60).applyMatrix4(planeGroup.matrixWorld);
-            camera.lookAt(lookAtPos);
+            camera.lookAt(new THREE.Vector3(0, 0, -60).applyMatrix4(planeGroup.matrixWorld));
 
             document.getElementById('speedDisplay').innerText = Math.floor(speed * 120);
             document.getElementById('altDisplay').innerText = Math.floor(planeGroup.position.y - 2);
-
             renderer.render(scene, camera);
         }
 
@@ -631,8 +429,6 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-
-        animate();
     </script>
 </body>
 </html>
