@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 Final - UI Fixed</title>
+    <title>F16 Final - Admin Edition</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -50,9 +50,9 @@
         }
         #restartBtn:active { transform: scale(0.95); }
 
-        /* --- TAM EKRAN BUTONU (Haritanın soluna alındı) --- */
+        /* --- TAM EKRAN BUTONU --- */
         #fullscreenBtn {
-            position: absolute; top: 20px; right: 190px; /* Haritanın solunda */
+            position: absolute; top: 20px; right: 190px;
             width: 40px; height: 40px;
             background: rgba(0, 0, 0, 0.5); border: 1px solid #00ff00; color: #00ff00;
             font-size: 24px; line-height: 40px; text-align: center;
@@ -66,6 +66,7 @@
             color: #00ff00; background-color: rgba(0, 10, 0, 0.9);
             border: 2px solid #00ff00; border-radius: 10px;
             box-shadow: 0 0 25px rgba(0, 255, 0, 0.15); user-select: none; z-index: 100;
+            pointer-events: none;
         }
         .panel-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0, 255, 0, 0.5); padding-bottom: 8px; margin-bottom: 15px; font-weight: bold; }
         .rec-dot { width: 10px; height: 10px; background: red; border-radius: 50%; display: inline-block; animation: blink 1s infinite; margin-right: 5px; }
@@ -78,7 +79,7 @@
         .stat-box { background: #000; border: 1px solid #00ff00; padding: 8px; text-align: center; }
         .stat-value { font-size: 22px; font-weight: bold; font-family: monospace; color: #fff; }
 
-        /* --- RADAR / GPS (SAĞ ÜST) --- */
+        /* --- RADAR (SAĞ ÜST) --- */
         #radarContainer {
             display: none;
             position: absolute; top: 20px; right: 20px;
@@ -96,7 +97,7 @@
             font-size: 10px; color: #00ff00; font-weight: bold; pointer-events: none;
         }
 
-        /* --- İZLEME BUTONU (SAĞ ÜST - Harita Altı) --- */
+        /* --- İZLEME BUTONU (SAĞDA RADARIN ALTINDA) --- */
         #spectateControl {
             display: none;
             position: absolute; top: 180px; right: 20px;
@@ -109,85 +110,92 @@
         }
         #camBtn:hover { background: #00ff00; color: #000; }
 
-        /* --- CHAT (SOL TARAFA TAŞINDI - HUD ALTINA) --- */
+        /* --- CHAT (SAĞ TARAFTA, KAMERA BUTONUNUN ALTINDA) --- */
         #chatContainer {
             display: none;
             position: absolute; 
-            top: 240px; /* HUD'ın bittiği yerin altı */
-            left: 20px; /* Sol tarafa yaslı */
-            width: 280px; /* HUD ile aynı genişlik */
+            top: 230px; 
+            right: 20px; 
+            width: 200px; 
             height: 150px;
-            background: rgba(0, 0, 0, 0.6); /* Daha transparan */
+            background: rgba(0, 0, 0, 0.8);
             border: 1px solid #00ff00;
             border-radius: 5px;
-            z-index: 100;
-            display: flex; flex-direction: column;
+            z-index: 200;
+            flex-direction: column;
+            transition: height 0.3s ease;
+            pointer-events: auto;
         }
-        #chatMessages { flex: 1; overflow-y: auto; padding: 10px; font-size: 13px; color: #ddd; font-family: 'Courier New', monospace; }
-        .chat-msg { margin-bottom: 5px; word-wrap: break-word; }
-        .chat-name { color: #00ff00; font-weight: bold; margin-right: 5px; }
-        #chatInputWrapper { display: flex; border-top: 1px solid #004400; }
-        #chatInput { flex: 1; background: transparent; border: none; color: white; padding: 8px; font-family: monospace; outline: none; }
-        #sendBtn { background: #004400; color: #00ff00; border: none; padding: 0 15px; cursor: pointer; font-weight: bold; }
+        
+        #chatHeader {
+            background: #004400; color: #00ff00; padding: 5px; font-size: 11px; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            border-bottom: 1px solid #00ff00;
+        }
+        #toggleChatBtn {
+            background: transparent; border: 1px solid #00ff00; color: #00ff00;
+            width: 18px; height: 18px; line-height: 16px; text-align: center; font-weight: bold; cursor: pointer;
+        }
+        #chatContent { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        #chatMessages { flex: 1; overflow-y: auto; padding: 5px; font-size: 12px; color: #ddd; font-family: 'Courier New', monospace; }
+        .chat-msg { margin-bottom: 4px; word-wrap: break-word; }
+        .chat-name { color: #00ff00; font-weight: bold; margin-right: 3px; }
+        #chatInputWrapper { display: flex; border-top: 1px solid #004400; min-height: 30px; }
+        #chatInput { flex: 1; background: transparent; border: none; color: white; padding: 5px; font-family: monospace; outline: none; font-size: 12px; }
+        #sendBtn { background: #004400; color: #00ff00; border: none; padding: 0 10px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .chat-minimized { height: 28px !important; overflow: hidden; }
 
         /* --- PC KONTROL BİLGİSİ --- */
         #pcControls {
             display: none;
-            position: absolute;
-            top: 50%; left: 20px; transform: translateY(-50%);
-            background: rgba(0, 20, 0, 0.8);
-            border: 1px solid #00ff00;
-            padding: 15px; border-radius: 10px;
-            color: #00ff00; font-family: monospace;
-            z-index: 90;
-            pointer-events: none;
+            position: absolute; top: 50%; left: 20px; transform: translateY(-50%);
+            background: rgba(0, 20, 0, 0.8); border: 1px solid #00ff00;
+            padding: 15px; border-radius: 10px; color: #00ff00; font-family: monospace;
+            z-index: 90; pointer-events: none;
         }
         #pcControls h3 { border-bottom: 1px solid #00ff00; padding-bottom: 5px; margin-top: 0; }
         .key-row { margin-bottom: 5px; }
         .key { border: 1px solid #fff; padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
 
-        /* --- MOBİL KONTROLLER (DİNAMİK JOYSTICK) --- */
+        /* --- MOBİL KONTROLLER --- */
         #mobileControls {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 150; pointer-events: none;
         }
-        #touchZoneLeft {
-            position: absolute; top: 0; left: 0; width: 50%; height: 100%;
-            pointer-events: auto;
-        }
+        #touchZoneLeft { position: absolute; top: 0; left: 0; width: 50%; height: 100%; pointer-events: auto; }
         #dynamicJoystick {
-            display: none;
-            position: absolute;
-            width: 120px; height: 120px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(0, 255, 0, 0.5);
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
+            display: none; position: absolute; width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 255, 0, 0.5);
+            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%);
         }
         #dynamicKnob {
-            position: absolute; top: 50%; left: 50%;
-            width: 50px; height: 50px;
-            background: rgba(0, 255, 0, 0.8);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px #00ff00;
+            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
+            background: rgba(0, 255, 0, 0.8); border-radius: 50%;
+            transform: translate(-50%, -50%); box-shadow: 0 0 15px #00ff00;
         }
-        /* GAZ BUTONU (SAĞ ALT) */
+        
+        /* GAZ BUTONU */
         #throttleBtn {
-            position: absolute; bottom: 40px; right: 40px; /* Sağ alt köşe */
-            width: 100px; height: 100px;
-            background: rgba(255, 0, 0, 0.2);
-            border: 3px solid #ff0000;
-            border-radius: 50%;
-            color: white; font-weight: bold; font-family: monospace; font-size: 18px;
+            position: absolute; bottom: 40px; right: 40px;
+            width: 90px; height: 90px;
+            background: rgba(0, 255, 0, 0.2); border: 3px solid #00ff00; border-radius: 50%;
+            color: white; font-weight: bold; font-family: monospace; font-size: 16px;
             display: flex; justify-content: center; align-items: center;
-            pointer-events: auto;
-            user-select: none;
+            pointer-events: auto; user-select: none;
         }
-        #throttleBtn:active { background: rgba(255, 0, 0, 0.6); box-shadow: 0 0 20px red; }
+        #throttleBtn:active { background: rgba(0, 255, 0, 0.6); box-shadow: 0 0 20px #00ff00; }
 
-        /* --- DİĞER --- */
+        /* FREN BUTONU */
+        #brakeBtnMobile {
+            position: absolute; bottom: 40px; right: 150px;
+            width: 70px; height: 70px;
+            background: rgba(255, 0, 0, 0.2); border: 3px solid #ff0000; border-radius: 50%;
+            color: white; font-weight: bold; font-family: monospace; font-size: 14px;
+            display: flex; justify-content: center; align-items: center;
+            pointer-events: auto; user-select: none;
+        }
+        #brakeBtnMobile:active { background: rgba(255, 0, 0, 0.6); box-shadow: 0 0 20px red; }
+
         #brand { position: absolute; top: 30px; right: 240px; font-family: 'Arial Black'; font-size: 36px; color: #ffffff; text-shadow: 0 0 25px #00ff00; pointer-events: none; z-index: 100; opacity: 0.5; }
         #damageOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, red 150%); opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 50; }
         #message {
@@ -198,29 +206,117 @@
         }
         .score-popup { position: absolute; color: #ffd700; font-weight: bold; font-size: 30px; font-family: 'Arial Black'; text-shadow: 0 0 15px orange; animation: floatUp 1s ease-out forwards; pointer-events: none; z-index: 102; }
         @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.2); opacity: 0; } }
+
+        /* --- ADMIN PANEL STİLİ (YENİ) --- */
+        #adminOpenBtn {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.5); color: #444; border: 1px solid #444;
+            padding: 5px 10px; cursor: pointer; font-size: 10px; z-index: 200;
+            font-family: monospace; transition: all 0.3s;
+        }
+        #adminOpenBtn:hover { color: #00ff00; border-color: #00ff00; }
+
+        #adminPanel {
+            display: none; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 320px;
+            background: #000; border: 2px solid #00ff00;
+            box-shadow: 0 0 30px #00ff00; z-index: 10000;
+            padding: 20px; font-family: 'Courier New', monospace;
+            color: #00ff00;
+        }
+
+        #adminLogin, #adminDashboard { display: flex; flex-direction: column; gap: 10px; }
+        #adminDashboard { display: none; } /* Başlangıçta gizli */
+
+        #adminPass {
+            background: #111; border: 1px solid #00ff00; color: #fff;
+            padding: 10px; outline: none; text-align: center;
+        }
+        
+        #adminLoginBtn, .adm-btn {
+            background: #004400; color: #00ff00; border: 1px solid #00ff00;
+            padding: 10px; cursor: pointer; font-weight: bold;
+        }
+        #adminLoginBtn:hover, .adm-btn:hover { background: #00ff00; color: #000; }
+        
+        #adminError { color: red; text-align: center; display: none; font-weight: bold; }
+
+        #playerSelect {
+            background: #111; color: #fff; border: 1px solid #00ff00;
+            padding: 5px; margin-bottom: 10px; width: 100%;
+        }
+
+        .control-group { border: 1px solid #333; padding: 10px; margin-bottom: 5px; }
+        .row { display: flex; gap: 5px; margin-top: 5px; }
+        .row input { width: 60%; background: #222; border: 1px solid #555; color: white; padding: 5px; }
+        
+        .kill-btn {
+            width: 100%; background: #330000; color: red; border: 1px solid red;
+            padding: 15px; font-weight: bold; cursor: pointer; margin-top: 5px;
+        }
+        .kill-btn:hover { background: red; color: white; box-shadow: 0 0 15px red; }
     </style>
 </head>
 <body>
-    <!-- GİRİŞ EKRANI -->
     <div id="loginScreen">
         <h1>EGGAPPS F16</h1>
         <input type="text" id="usernameInput" placeholder="PİLOT ADI GİRİN" maxlength="12">
         <button id="startBtn">UÇUŞA BAŞLA</button>
     </div>
 
-    <!-- GAME OVER EKRANI (Alert Yerine) -->
     <div id="gameOverScreen">
         <h2>KAZA RAPORU</h2>
         <h3 style="color:white; margin-top:0;">UÇAK PARÇALANDI</h3>
         <button id="restartBtn">YENİDEN KALKIŞ YAP</button>
     </div>
 
-    <!-- TAM EKRAN BUTONU -->
     <div id="fullscreenBtn">⛶</div>
-
     <div id="damageOverlay"></div>
     <div id="message">⚠️ KURTARMA SİSTEMİ<br><span style="font-size:10px; color:white;">YENİDEN KONUMLANDIRILIYOR</span></div>
     <div id="brand">Eggapps</div>
+
+    <!-- ADMIN BUTONU -->
+    <div id="adminOpenBtn">ADM</div>
+
+    <!-- ADMIN PANELİ -->
+    <div id="adminPanel">
+        <div id="adminLogin">
+            <h3>YÖNETİCİ ERİŞİMİ</h3>
+            <input type="password" id="adminPass" placeholder="Şifre">
+            <button id="adminLoginBtn">GİRİŞ</button>
+            <div id="adminError">Erişim Reddedildi</div>
+        </div>
+        
+        <div id="adminDashboard">
+            <div class="panel-header">
+                <span>KOMUTA MERKEZİ</span>
+                <button id="adminCloseBtn" style="background:transparent; border:none; color:red; cursor:pointer;">X</button>
+            </div>
+            
+            <label>HEDEF OYUNCU:</label>
+            <select id="playerSelect"></select>
+
+            <div class="control-group">
+                <label>PUAN AYARLA:</label>
+                <div class="row">
+                    <input type="number" id="admScoreInput" placeholder="0">
+                    <button id="btnSetScore" class="adm-btn">UYGULA</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>CAN AYARLA (%):</label>
+                <div class="row">
+                    <input type="number" id="admHealthInput" placeholder="100" max="100" min="0">
+                    <button id="btnSetHealth" class="adm-btn">UYGULA</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <button id="btnKill" class="kill-btn">☠️ HEDEFİ YOK ET ☠️</button>
+            </div>
+        </div>
+    </div>
 
     <div id="radarContainer">
         <canvas id="radarCanvas" width="150" height="150"></canvas>
@@ -233,21 +329,22 @@
 
     <div id="pcControls">
         <h3>KONTROLLER</h3>
-        <div class="key-row"><span class="key">W</span> : GAZ (SPEED)</div>
+        <div class="key-row"><span class="key">W</span> : GAZ</div>
+        <div class="key-row"><span class="key">S</span> : FREN</div>
         <div class="key-row"><span class="key">▲</span> : YÜKSEL</div>
         <div class="key-row"><span class="key">▼</span> : ALÇAL</div>
-        <div class="key-row"><span class="key">◄</span> : SOLA DÖN</div>
-        <div class="key-row"><span class="key">►</span> : SAĞA DÖN</div>
+        <div class="key-row"><span class="key">◄</span> : SOLA</div>
+        <div class="key-row"><span class="key">►</span> : SAĞA</div>
         <div class="key-row"><span class="key">C</span> : KAMERA</div>
         <div class="key-row"><span class="key">ENTER</span> : CHAT</div>
     </div>
 
-    <!-- MOBİL KONTROLLER -->
     <div id="mobileControls">
         <div id="touchZoneLeft"></div>
         <div id="dynamicJoystick">
             <div id="dynamicKnob"></div>
         </div>
+        <div id="brakeBtnMobile">FREN</div>
         <div id="throttleBtn">GAZ</div>
     </div>
 
@@ -268,13 +365,20 @@
         </div>
     </div>
 
+    <!-- CHAT (SAĞDA) -->
     <div id="chatContainer">
-        <div id="chatMessages">
-            <div class="chat-msg" style="color: yellow;">Sistem: Motorlar hazır...</div>
+        <div id="chatHeader">
+            <span>TELSİZ</span>
+            <button id="toggleChatBtn">_</button>
         </div>
-        <div id="chatInputWrapper">
-            <input type="text" id="chatInput" placeholder="Mesaj yaz... (Enter)" autocomplete="off">
-            <button id="sendBtn">YOL</button>
+        <div id="chatContent">
+            <div id="chatMessages">
+                <div class="chat-msg" style="color: yellow;">Sistem: Hazır...</div>
+            </div>
+            <div id="chatInputWrapper">
+                <input type="text" id="chatInput" placeholder="Mesaj..." autocomplete="off">
+                <button id="sendBtn">YOL</button>
+            </div>
         </div>
     </div>
 
@@ -282,7 +386,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onDisconnect, onValue, onChildAdded, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onDisconnect, onValue, onChildAdded, query, limitToLast, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyConJs82OWJReQWyyyWr00NTdBH9lAsEtQ",
@@ -521,10 +625,29 @@
             });
         }
 
-        // CHAT
+        // --- CHAT SİSTEMİ ---
         const chatRef = ref(db, 'chat');
         const chatInput = document.getElementById('chatInput');
         const chatMessages = document.getElementById('chatMessages');
+        const chatContainer = document.getElementById('chatContainer');
+        const toggleChatBtn = document.getElementById('toggleChatBtn');
+        let isChatMinimized = false;
+
+        document.getElementById('chatHeader').addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            isChatMinimized = !isChatMinimized;
+            if(isChatMinimized) {
+                chatContainer.classList.add('chat-minimized');
+                toggleChatBtn.innerText = "□";
+            } else {
+                chatContainer.classList.remove('chat-minimized');
+                toggleChatBtn.innerText = "_";
+            }
+        });
+
+        chatContainer.addEventListener('touchstart', (e) => { e.stopPropagation(); });
+        chatContainer.addEventListener('touchmove', (e) => { e.stopPropagation(); });
+        chatContainer.addEventListener('touchend', (e) => { e.stopPropagation(); });
 
         function sendMessage() {
             const text = chatInput.value.trim();
@@ -572,6 +695,26 @@
             playerRef = ref(db, 'players/' + myPlayerId);
             onDisconnect(playerRef).remove();
             
+            // --- SENKRONİZASYON (Admin Müdahalesi İçin) ---
+            onValue(ref(db, 'players/' + myPlayerId + '/health'), (snapshot) => {
+                const serverHealth = snapshot.val();
+                if (serverHealth !== null && Math.abs(serverHealth - health) > 5) {
+                    health = serverHealth;
+                    if(health <= 0) {
+                        health = 0;
+                        document.getElementById('gameOverScreen').style.display = 'flex';
+                    }
+                }
+            });
+
+            onValue(ref(db, 'players/' + myPlayerId + '/score'), (snapshot) => {
+                const serverScore = snapshot.val();
+                if (serverScore !== null && Math.abs(serverScore - score) > 10) {
+                    score = serverScore;
+                }
+            });
+            // ----------------------------------------------
+
             const allPlayersRef = ref(db, 'players');
             onValue(allPlayersRef, (snapshot) => {
                 const players = snapshot.val() || {};
@@ -602,7 +745,6 @@
             animate();
         });
 
-        // --- YENİDEN BAŞLATMA ---
         document.getElementById('restartBtn').addEventListener('click', () => {
              document.getElementById('gameOverScreen').style.display = 'none';
              resetGameVars();
@@ -612,14 +754,16 @@
         let health = 100;
         let lastDamageTime = 0;
         let speed = 0;
-        const keys = { w: false, up: false, down: false, left: false, right: false };
+        const keys = { w: false, s: false, up: false, down: false, left: false, right: false };
         const maxSpeed = 12.0, liftSpeed = 3.0;
 
         function resetGameVars() {
             speed = 0; health = 100; score = 0; flame.visible = false;
-            keys.w = false; keys.up = false; keys.down = false; keys.left = false; keys.right = false;
+            keys.w = false; keys.s = false; keys.up = false; keys.down = false; keys.left = false; keys.right = false;
             planeGroup.position.set(0, 2, 0); planeGroup.rotation.set(0, 0, 0);
             document.getElementById('scoreDisplay').innerText = 0;
+            // Admin kill attıysa yeniden başlatınca canı sunucuya 100 olarak gönder
+            if(playerRef) update(playerRef, { health: 100 });
         }
 
         function takeDamage(amount) {
@@ -647,10 +791,11 @@
             document.getElementById('altDisplay').innerText = Math.floor(currentAlt - 2);
         }
 
-        // --- KLAVYE ---
+        // --- KLAVYE KONTROLLERİ ---
         document.addEventListener('keydown', (e) => {
-            if (document.activeElement === chatInput) return;
+            if (document.activeElement === chatInput || document.activeElement.tagName === 'INPUT') return;
             if(e.key === 'w' || e.key === 'W') keys.w = true;
+            if(e.key === 's' || e.key === 'S') keys.s = true; 
             if(e.key === 'ArrowUp') keys.up = true;
             if(e.key === 'ArrowDown') keys.down = true;
             if(e.key === 'ArrowLeft') keys.left = true;
@@ -658,6 +803,7 @@
         });
         document.addEventListener('keyup', (e) => {
             if(e.key === 'w' || e.key === 'W') keys.w = false;
+            if(e.key === 's' || e.key === 'S') keys.s = false;
             if(e.key === 'ArrowUp') keys.up = false;
             if(e.key === 'ArrowDown') keys.down = false;
             if(e.key === 'ArrowLeft') keys.left = false;
@@ -670,6 +816,7 @@
             const dynamicJoystick = document.getElementById('dynamicJoystick');
             const dynamicKnob = document.getElementById('dynamicKnob');
             const throttleBtn = document.getElementById('throttleBtn');
+            const brakeBtnMobile = document.getElementById('brakeBtnMobile');
             
             let joyCenterX, joyCenterY;
             const joyMaxRadius = 40; 
@@ -726,8 +873,11 @@
                 keys.right = (dx > threshold);
             }
 
-            throttleBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.w = true; throttleBtn.style.background = "rgba(255,0,0,0.6)"; });
-            throttleBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.w = false; throttleBtn.style.background = "rgba(255,0,0,0.2)"; });
+            throttleBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.w = true; throttleBtn.style.background = "rgba(0,255,0,0.6)"; });
+            throttleBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.w = false; throttleBtn.style.background = "rgba(0,255,0,0.2)"; });
+
+            brakeBtnMobile.addEventListener('touchstart', (e) => { e.preventDefault(); keys.s = true; brakeBtnMobile.style.background = "rgba(255,0,0,0.6)"; });
+            brakeBtnMobile.addEventListener('touchend', (e) => { e.preventDefault(); keys.s = false; brakeBtnMobile.style.background = "rgba(255,0,0,0.2)"; });
         }
 
         let frameCount = 0;
@@ -774,6 +924,9 @@
                     speed += 0.08 * speedFactor; 
                     flame.visible = true; 
                     flame.scale.setScalar(0.8 + Math.random()*0.4); 
+                } else if (keys.s) {
+                    speed -= 0.15 * speedFactor; 
+                    flame.visible = false;
                 } else { 
                     flame.visible = false; 
                     speed -= 0.005 * speedFactor; 
@@ -877,6 +1030,87 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        // --- ADMIN SISTEMİ MANTIĞI ---
+        const adminBtn = document.getElementById('adminOpenBtn');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminLoginDiv = document.getElementById('adminLogin');
+        const adminDashDiv = document.getElementById('adminDashboard');
+        const adminPassInput = document.getElementById('adminPass');
+        const adminError = document.getElementById('adminError');
+        const playerSelect = document.getElementById('playerSelect');
+
+        adminBtn.addEventListener('click', () => {
+            adminPanel.style.display = 'block';
+        });
+
+        document.getElementById('adminCloseBtn').addEventListener('click', () => {
+            adminPanel.style.display = 'none';
+        });
+
+        document.getElementById('adminLoginBtn').addEventListener('click', () => {
+            if(adminPassInput.value === 'Kral Kaybederse') {
+                adminLoginDiv.style.display = 'none';
+                adminDashDiv.style.display = 'flex';
+                refreshPlayerList();
+            } else {
+                adminError.style.display = 'block';
+                setTimeout(() => adminError.style.display = 'none', 2000);
+            }
+        });
+
+        function refreshPlayerList() {
+            playerSelect.innerHTML = '';
+            
+            const selfOpt = document.createElement('option');
+            selfOpt.value = myPlayerId;
+            selfOpt.text = `(SEN) ${myName}`;
+            playerSelect.appendChild(selfOpt);
+
+            Object.keys(playersDataCache).forEach(key => {
+                if(key !== myPlayerId) {
+                    const p = playersDataCache[key];
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.text = `${p.name} (Skor: ${p.score})`;
+                    playerSelect.appendChild(opt);
+                }
+            });
+        }
+        
+        setInterval(() => {
+            if(adminPanel.style.display === 'block') refreshPlayerList();
+        }, 5000);
+
+        document.getElementById('btnSetScore').addEventListener('click', () => {
+            const targetId = playerSelect.value;
+            const val = parseInt(document.getElementById('admScoreInput').value);
+            if(!targetId || isNaN(val)) return;
+
+            if(targetId === myPlayerId) { score = val; }
+            update(ref(db, 'players/' + targetId), { score: val });
+        });
+
+        document.getElementById('btnSetHealth').addEventListener('click', () => {
+            const targetId = playerSelect.value;
+            const val = parseInt(document.getElementById('admHealthInput').value);
+            if(!targetId || isNaN(val)) return;
+
+            if(targetId === myPlayerId) { health = val; updateHUD(myName, score, health, speed, planeGroup.position.y); }
+            update(ref(db, 'players/' + targetId), { health: val });
+        });
+
+        document.getElementById('btnKill').addEventListener('click', () => {
+            const targetId = playerSelect.value;
+            if(!targetId) return;
+
+            if(targetId === myPlayerId) { 
+                takeDamage(1000);
+            } else {
+                update(ref(db, 'players/' + targetId), { health: 0 });
+            }
+        });
+
     </script>
 </body>
 </html>
