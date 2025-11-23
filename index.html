@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 Final - Smooth & Dynamic Joy</title>
+    <title>F16 Final - Stable Physics & UI</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -30,6 +30,35 @@
         }
         #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 20px #00ff00; }
 
+        /* --- ÖZEL GAME OVER EKRANI (Alert yerine) --- */
+        #gameOverScreen {
+            display: none;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(50, 0, 0, 0.8);
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10000; color: white;
+            backdrop-filter: blur(5px);
+        }
+        #gameOverScreen h2 {
+            font-size: 40px; font-family: 'Arial Black'; color: #ff3333; text-shadow: 0 0 20px red;
+            margin-bottom: 10px;
+        }
+        #restartBtn {
+            padding: 20px 50px; font-size: 24px; background: #ff0000; color: white;
+            border: 2px solid white; border-radius: 10px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+        #restartBtn:active { transform: scale(0.95); }
+
+        /* --- TAM EKRAN BUTONU --- */
+        #fullscreenBtn {
+            position: absolute; top: 20px; right: 20px;
+            width: 40px; height: 40px;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid #00ff00; color: #00ff00;
+            font-size: 24px; line-height: 40px; text-align: center;
+            cursor: pointer; z-index: 200; border-radius: 5px;
+        }
+
         /* --- HUD --- */
         #hud {
             display: none;
@@ -52,8 +81,8 @@
         /* --- RADAR / GPS --- */
         #radarContainer {
             display: none;
-            position: absolute; top: 20px; right: 20px;
-            width: 180px; height: 180px;
+            position: absolute; top: 80px; right: 20px;
+            width: 150px; height: 150px;
             background: rgba(0, 10, 0, 0.85);
             border: 2px solid #00ff00;
             border-radius: 50%;
@@ -70,7 +99,7 @@
         /* --- İZLEME BUTONU --- */
         #spectateControl {
             display: none;
-            position: absolute; top: 210px; right: 20px;
+            position: absolute; top: 240px; right: 20px;
             z-index: 101;
         }
         #camBtn {
@@ -117,16 +146,12 @@
         /* --- MOBİL KONTROLLER (DİNAMİK JOYSTICK) --- */
         #mobileControls {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 150; pointer-events: none; /* Altındaki canvas'ı engellemesin diye */
+            z-index: 150; pointer-events: none;
         }
-        
-        /* Sol tarafı kaplayan görünmez dokunma alanı */
         #touchZoneLeft {
             position: absolute; top: 0; left: 0; width: 50%; height: 100%;
-            pointer-events: auto; /* Dokunmayı algıla */
+            pointer-events: auto;
         }
-
-        /* Dinamik Joystick (Başlangıçta gizli) */
         #dynamicJoystick {
             display: none;
             position: absolute;
@@ -134,7 +159,7 @@
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(0, 255, 0, 0.5);
             border-radius: 50%;
-            pointer-events: none; /* Dokunma eventlerini touchZoneLeft yönetecek */
+            pointer-events: none;
             transform: translate(-50%, -50%);
         }
         #dynamicKnob {
@@ -145,8 +170,6 @@
             transform: translate(-50%, -50%);
             box-shadow: 0 0 15px #00ff00;
         }
-
-        /* Gaz Butonu */
         #throttleBtn {
             position: absolute; bottom: 60px; right: 40px;
             width: 100px; height: 100px;
@@ -174,11 +197,22 @@
     </style>
 </head>
 <body>
+    <!-- GİRİŞ EKRANI -->
     <div id="loginScreen">
         <h1>EGGAPPS F16</h1>
         <input type="text" id="usernameInput" placeholder="PİLOT ADI GİRİN" maxlength="12">
         <button id="startBtn">UÇUŞA BAŞLA</button>
     </div>
+
+    <!-- GAME OVER EKRANI (Alert Yerine) -->
+    <div id="gameOverScreen">
+        <h2>KAZA RAPORU</h2>
+        <h3 style="color:white; margin-top:0;">UÇAK PARÇALANDI</h3>
+        <button id="restartBtn">YENİDEN KALKIŞ YAP</button>
+    </div>
+
+    <!-- TAM EKRAN BUTONU -->
+    <div id="fullscreenBtn">⛶</div>
 
     <div id="damageOverlay"></div>
     <div id="message">⚠️ KURTARMA SİSTEMİ<br><span style="font-size:10px; color:white;">YENİDEN KONUMLANDIRILIYOR</span></div>
@@ -196,17 +230,17 @@
     <div id="pcControls">
         <h3>KONTROLLER</h3>
         <div class="key-row"><span class="key">W</span> : GAZ (SPEED)</div>
-        <div class="key-row"><span class="key">▲</span> : YÜKSEL (PITCH UP)</div>
-        <div class="key-row"><span class="key">▼</span> : ALÇAL (PITCH DOWN)</div>
-        <div class="key-row"><span class="key">◄</span> : SOLA DÖN (ROLL)</div>
-        <div class="key-row"><span class="key">►</span> : SAĞA DÖN (ROLL)</div>
-        <div class="key-row"><span class="key">C</span> : KAMERA DEĞİŞ</div>
+        <div class="key-row"><span class="key">▲</span> : YÜKSEL</div>
+        <div class="key-row"><span class="key">▼</span> : ALÇAL</div>
+        <div class="key-row"><span class="key">◄</span> : SOLA DÖN</div>
+        <div class="key-row"><span class="key">►</span> : SAĞA DÖN</div>
+        <div class="key-row"><span class="key">C</span> : KAMERA</div>
         <div class="key-row"><span class="key">ENTER</span> : CHAT</div>
     </div>
 
     <!-- MOBİL KONTROLLER -->
     <div id="mobileControls">
-        <div id="touchZoneLeft"></div> <!-- Dokunma Alanı -->
+        <div id="touchZoneLeft"></div>
         <div id="dynamicJoystick">
             <div id="dynamicKnob"></div>
         </div>
@@ -232,7 +266,7 @@
 
     <div id="chatContainer">
         <div id="chatMessages">
-            <div class="chat-msg" style="color: yellow;">Sistem: Platform algılanıyor...</div>
+            <div class="chat-msg" style="color: yellow;">Sistem: Motorlar hazır...</div>
         </div>
         <div id="chatInputWrapper">
             <input type="text" id="chatInput" placeholder="Mesaj yaz... (Enter)" autocomplete="off">
@@ -268,6 +302,7 @@
         let spectateId = null;
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const clock = new THREE.Clock(); // DELTA TIME İÇİN
 
         const scene = new THREE.Scene();
         const darkSkyColor = 0x2c3e50; 
@@ -302,7 +337,6 @@
         const mat3 = new THREE.MeshPhongMaterial({ color: 0x34495e }); 
 
         const BUILDING_COUNT = 3000; 
-
         for(let i=0; i<BUILDING_COUNT; i++) {
             const w = 40 + Math.random() * 60;
             const h = 100 + Math.random() * 500;
@@ -379,6 +413,20 @@
         planeGroup.position.set(0, 2, 0);
         planeGroup.rotation.order = 'YXZ';
         const playerBox = new THREE.Box3();
+
+        // --- TAM EKRAN BUTONU ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        document.getElementById('fullscreenBtn').addEventListener('click', toggleFullScreen);
 
         // --- İZLEME SİSTEMİ ---
         function toggleCamera() {
@@ -500,22 +548,15 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
 
+        // --- OYUN BAŞLATMA ---
         document.getElementById('startBtn').addEventListener('click', () => {
             const inputVal = document.getElementById('usernameInput').value;
             if(!inputVal.trim()) { alert("İsim yazmadan uçamazsın!"); return; }
             myName = inputVal;
             myPlayerId = 'pilot_' + Math.random().toString(36).substr(2, 5);
             
-            // TAM EKRAN İSTEĞİ (MOBİL İÇİN)
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-                document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) {
-                document.documentElement.msRequestFullscreen();
-            }
+            // Tam ekran isteği
+            toggleFullScreen();
 
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
@@ -542,7 +583,6 @@
                     const pData = players[key];
                     if (!otherPlayers[key]) {
                         const enemyPlane = createPlaneMesh(0xff0000, 0x880000);
-                        // Hedef verileri için userData oluştur
                         enemyPlane.userData = { 
                             targetPos: new THREE.Vector3(pData.x, pData.y, pData.z),
                             targetRot: new THREE.Quaternion().setFromEuler(new THREE.Euler(pData.rx, pData.ry, pData.rz))
@@ -550,7 +590,6 @@
                         scene.add(enemyPlane);
                         otherPlayers[key] = enemyPlane;
                     } else {
-                        // Var olan oyuncu için hedefi güncelle (LAG ÇÖZÜMÜ)
                         const enemy = otherPlayers[key];
                         enemy.userData.targetPos = new THREE.Vector3(pData.x, pData.y, pData.z);
                         enemy.userData.targetRot = new THREE.Quaternion().setFromEuler(new THREE.Euler(pData.rx, pData.ry, pData.rz));
@@ -564,25 +603,38 @@
             animate();
         });
 
+        // --- YENİDEN BAŞLATMA BUTONU ---
+        document.getElementById('restartBtn').addEventListener('click', () => {
+             document.getElementById('gameOverScreen').style.display = 'none';
+             resetGameVars();
+             // Tekrar tam ekran deneyelim (kullanıcı etkileşimi olduğu için çalışır)
+             toggleFullScreen();
+        });
+
         let health = 100;
         let lastDamageTime = 0;
         let speed = 0;
         const keys = { w: false, up: false, down: false, left: false, right: false };
         const maxSpeed = 12.0, liftSpeed = 3.0;
 
-        function resetGame() {
+        function resetGameVars() {
             speed = 0; health = 100; score = 0; flame.visible = false;
             keys.w = false; keys.up = false; keys.down = false; keys.left = false; keys.right = false;
             planeGroup.position.set(0, 2, 0); planeGroup.rotation.set(0, 0, 0);
             document.getElementById('scoreDisplay').innerText = 0;
-            alert("UÇAK DÜŞTÜ! TAMAM'A BASARAK ANA ÜSSE DÖNÜN.");
+            // updateHealthUI() animate'de var
         }
 
         function takeDamage(amount) {
             health -= amount; lastDamageTime = Date.now();
             document.getElementById('damageOverlay').style.opacity = 0.8;
             setTimeout(() => document.getElementById('damageOverlay').style.opacity = 0, 200);
-            if(health <= 0) { health = 0; resetGame(); }
+            if(health <= 0) { 
+                health = 0; 
+                // ÖZEL GAME OVER EKRANI GÖSTER
+                document.getElementById('gameOverScreen').style.display = 'flex';
+                // Artık alert yok, tam ekran bozulmaz
+            }
         }
 
         function updateHUD(currentName, currentScore, currentHealth, currentSpeed, currentAlt) {
@@ -617,7 +669,7 @@
             if(e.key === 'ArrowRight') keys.right = false;
         });
 
-        // --- DİNAMİK JOYSTICK (eFOOTBALL TARZI) ---
+        // --- MOBİL KONTROLLER (DİNAMİK JOYSTICK) ---
         if(isMobile) {
             const touchZoneLeft = document.getElementById('touchZoneLeft');
             const dynamicJoystick = document.getElementById('dynamicJoystick');
@@ -630,15 +682,10 @@
 
             touchZoneLeft.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                // İlk dokunuşu al
                 const touch = e.changedTouches[0];
                 activeTouchId = touch.identifier;
-
-                // Joystick merkezini parmağın değdiği yer yap
                 joyCenterX = touch.clientX;
                 joyCenterY = touch.clientY;
-
-                // Joystick'i oraya taşı ve göster
                 dynamicJoystick.style.left = joyCenterX + 'px';
                 dynamicJoystick.style.top = joyCenterY + 'px';
                 dynamicJoystick.style.display = 'block';
@@ -660,7 +707,6 @@
                 e.preventDefault();
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === activeTouchId) {
-                        // Joystick'i gizle ve tuşları sıfırla
                         dynamicJoystick.style.display = 'none';
                         activeTouchId = null;
                         keys.up = false; keys.down = false; keys.left = false; keys.right = false;
@@ -673,15 +719,11 @@
                 let dx = x - joyCenterX;
                 let dy = y - joyCenterY;
                 const distance = Math.sqrt(dx*dx + dy*dy);
-                
                 if (distance > joyMaxRadius) {
                     const ratio = joyMaxRadius / distance;
-                    dx *= ratio;
-                    dy *= ratio;
+                    dx *= ratio; dy *= ratio;
                 }
-
                 dynamicKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-
                 const threshold = 10;
                 keys.up = (dy < -threshold);
                 keys.down = (dy > threshold);
@@ -689,16 +731,8 @@
                 keys.right = (dx > threshold);
             }
 
-            throttleBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                keys.w = true;
-                throttleBtn.style.background = "rgba(255,0,0,0.6)";
-            });
-            throttleBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                keys.w = false;
-                throttleBtn.style.background = "rgba(255,0,0,0.2)";
-            });
+            throttleBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.w = true; throttleBtn.style.background = "rgba(255,0,0,0.6)"; });
+            throttleBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.w = false; throttleBtn.style.background = "rgba(255,0,0,0.2)"; });
         }
 
         let frameCount = 0;
@@ -707,21 +741,25 @@
             if(!gameActive) return;
             requestAnimationFrame(animate);
 
+            // --- DELTA TIME (HIZ FARKINI ÖNLEMEK İÇİN) ---
+            const delta = clock.getDelta(); // Geçen süre (saniye)
+            // Ortalama 60FPS için bir çarpan. 
+            // 0.016ms * 60 = ~1. 
+            // Yani delta'yı sabit katsayılarla çarpmalıyız.
+            const speedFactor = delta * 60; // 60 FPS'de 1 döner, 120FPS'de 0.5 döner ama 2 kere çalışır = 1.
+
             drawRadar();
 
             if (health > 0 && health < 100 && Date.now() - lastDamageTime > 10000) {
-                health += 0.1; 
+                health += 0.1 * speedFactor; 
             }
 
-            // --- LAG ÇÖZÜMÜ: İNTERPOLASYON (SMOOTHING) ---
-            // Diğer uçakları hedeflerine doğru kaydır
+            // Diğer uçaklar için lag yumuşatma
             Object.keys(otherPlayers).forEach(key => {
                 const enemy = otherPlayers[key];
                 if(enemy.userData.targetPos) {
-                    // Pozisyonu yumuşat (0.1 = %10 yaklaşma hızı)
-                    enemy.position.lerp(enemy.userData.targetPos, 0.1);
-                    // Dönüşü yumuşat (Quaternion Slerp)
-                    enemy.quaternion.slerp(enemy.userData.targetRot, 0.1);
+                    enemy.position.lerp(enemy.userData.targetPos, 0.1 * speedFactor);
+                    enemy.quaternion.slerp(enemy.userData.targetRot, 0.1 * speedFactor);
                 }
             });
 
@@ -741,14 +779,15 @@
                 }
             }
 
+            // --- HAREKET FİZİĞİ (DELTA TIME EKLENDİ) ---
             if (health > 0) {
                 if (keys.w) { 
-                    speed += 0.08; 
+                    speed += 0.08 * speedFactor; // Hızlanma delta ile çarpıldı
                     flame.visible = true; 
                     flame.scale.setScalar(0.8 + Math.random()*0.4); 
                 } else { 
                     flame.visible = false; 
-                    speed -= 0.005; 
+                    speed -= 0.005 * speedFactor; 
                 }
             } else { speed = 0; flame.visible = false; }
 
@@ -756,7 +795,7 @@
             if(speed < 0) speed = 0;
 
             const oldPosition = planeGroup.position.clone();
-            planeGroup.translateZ(-speed);
+            planeGroup.translateZ(-speed * speedFactor); // Hareket delta ile çarpıldı
 
             frameCount++;
             if(frameCount % 3 === 0 && playerRef) {
@@ -776,7 +815,7 @@
 
             for (let i = collectables.length - 1; i >= 0; i--) {
                 const item = collectables[i];
-                item.rotation.x += 0.02;
+                item.rotation.x += 0.02 * speedFactor;
                 const dist = planeGroup.position.distanceTo(item.position);
                 if (dist < 25) {
                     score += item.userData.points;
@@ -800,21 +839,27 @@
                 }
             }
 
+            // DÖNÜŞ HIZLARI (DELTA TIME UYGULANDI)
             if (speed > 0.5 && health > 0) {
-                if(keys.up && planeGroup.rotation.x < 1.0) planeGroup.rotation.x += 0.02;
-                if(keys.down && planeGroup.rotation.x > -1.0) planeGroup.rotation.x -= 0.02;
-                if (keys.left) { planeGroup.rotateY(0.015); if (planeGroup.rotation.z < 0.8) planeGroup.rotation.z += 0.03; } 
-                else if (keys.right) { planeGroup.rotateY(-0.015); if (planeGroup.rotation.z > -0.8) planeGroup.rotation.z -= 0.03; } 
+                const turnSpeed = 0.02 * speedFactor;
+                const rollSpeed = 0.03 * speedFactor;
+                const yawSpeed = 0.015 * speedFactor;
+
+                if(keys.up && planeGroup.rotation.x < 1.0) planeGroup.rotation.x += turnSpeed;
+                if(keys.down && planeGroup.rotation.x > -1.0) planeGroup.rotation.x -= turnSpeed;
+                if (keys.left) { planeGroup.rotateY(yawSpeed); if (planeGroup.rotation.z < 0.8) planeGroup.rotation.z += rollSpeed; } 
+                else if (keys.right) { planeGroup.rotateY(-yawSpeed); if (planeGroup.rotation.z > -0.8) planeGroup.rotation.z -= rollSpeed; } 
                 else {
-                    if (planeGroup.rotation.z > 0.005) planeGroup.rotation.z -= 0.015;
-                    else if (planeGroup.rotation.z < -0.005) planeGroup.rotation.z += 0.015;
+                    // Düzeltme
+                    if (planeGroup.rotation.z > 0.005) planeGroup.rotation.z -= yawSpeed;
+                    else if (planeGroup.rotation.z < -0.005) planeGroup.rotation.z += yawSpeed;
                 }
             }
 
             if (planeGroup.position.y > 2) {
                 if (speed < liftSpeed) {
-                    planeGroup.position.y -= 1.5 * (1 - speed/liftSpeed);
-                    if(planeGroup.rotation.x > -0.5) planeGroup.rotation.x -= 0.01;
+                    planeGroup.position.y -= 1.5 * (1 - speed/liftSpeed) * speedFactor;
+                    if(planeGroup.rotation.x > -0.5) planeGroup.rotation.x -= 0.01 * speedFactor;
                 }
             } else {
                 if (planeGroup.position.y <= 2) {
@@ -832,7 +877,7 @@
             }
 
             const targetPos = new THREE.Vector3(0, 12, 45).applyMatrix4(targetObj.matrixWorld);
-            camera.position.lerp(targetPos, 0.1);
+            camera.position.lerp(targetPos, 0.1 * speedFactor); // Kamera yumuşaklığı da delta ile
             
             const lookAtPos = new THREE.Vector3(0, 0, -60).applyMatrix4(targetObj.matrixWorld);
             camera.lookAt(lookAtPos);
