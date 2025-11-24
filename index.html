@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 ONLINE - BALANCED ARCADE</title>
+    <title>F16 ONLINE - STABLE FINAL</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -893,7 +893,6 @@
             if(adminPassInput.value === 'Kral Kaybederse') {
                 adminLoginDiv.style.display = 'none'; adminDashDiv.style.display = 'flex';
                 refreshPlayerList();
-                setInterval(() => { if(adminPanel.style.display === 'block') refreshPlayerList(); }, 2000);
             } else {
                 adminError.style.display = 'block'; setTimeout(() => adminError.style.display = 'none', 2000);
             }
