@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 Final - Admin Edition</title>
+    <title>F16 Final - Leaderboard & Score Fix</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -58,6 +58,34 @@
             font-size: 24px; line-height: 40px; text-align: center;
             cursor: pointer; z-index: 200; border-radius: 5px;
         }
+
+        /* --- LİDERLİK TABLOSU BUTONU VE PANELİ (YENİ) --- */
+        #leaderboardBtn {
+            position: absolute; top: 20px; right: 240px; /* Tam ekranın solunda */
+            width: 40px; height: 40px;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid #ffd700; color: #ffd700;
+            font-size: 20px; line-height: 40px; text-align: center;
+            cursor: pointer; z-index: 200; border-radius: 5px;
+        }
+        #leaderboardPanel {
+            display: none;
+            position: absolute; top: 70px; right: 190px;
+            width: 250px; background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ffd700; border-radius: 5px;
+            z-index: 201; padding: 10px; color: #ffd700;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        #leaderboardPanel h3 {
+            margin: 0 0 10px 0; text-align: center; border-bottom: 1px solid #ffd700; padding-bottom: 5px; font-size: 16px;
+        }
+        .lb-row {
+            display: flex; justify-content: space-between;
+            margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px;
+            font-size: 14px;
+        }
+        .lb-name { font-weight: bold; }
+        .lb-score { color: white; }
 
         /* --- HUD (SOL ÜST) --- */
         #hud {
@@ -196,7 +224,7 @@
         }
         #brakeBtnMobile:active { background: rgba(255, 0, 0, 0.6); box-shadow: 0 0 20px red; }
 
-        #brand { position: absolute; top: 30px; right: 240px; font-family: 'Arial Black'; font-size: 36px; color: #ffffff; text-shadow: 0 0 25px #00ff00; pointer-events: none; z-index: 100; opacity: 0.5; }
+        #brand { position: absolute; top: 30px; right: 290px; font-family: 'Arial Black'; font-size: 36px; color: #ffffff; text-shadow: 0 0 25px #00ff00; pointer-events: none; z-index: 100; opacity: 0.5; }
         #damageOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, red 150%); opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 50; }
         #message {
             position: absolute; top: 100px; right: 190px; width: 200px;
@@ -207,7 +235,7 @@
         .score-popup { position: absolute; color: #ffd700; font-weight: bold; font-size: 30px; font-family: 'Arial Black'; text-shadow: 0 0 15px orange; animation: floatUp 1s ease-out forwards; pointer-events: none; z-index: 102; }
         @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.2); opacity: 0; } }
 
-        /* --- ADMIN PANEL STİLİ (YENİ) --- */
+        /* --- ADMIN PANEL STİLİ --- */
         #adminOpenBtn {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.5); color: #444; border: 1px solid #444;
@@ -267,10 +295,20 @@
     <div id="gameOverScreen">
         <h2>KAZA RAPORU</h2>
         <h3 style="color:white; margin-top:0;">UÇAK PARÇALANDI</h3>
+        <p style="color:#ffd700; font-family:monospace; margin-top:-10px;">CEZA: -1000 PUAN</p>
         <button id="restartBtn">YENİDEN KALKIŞ YAP</button>
     </div>
 
+    <!-- BUTONLAR (SAĞ ÜST) -->
     <div id="fullscreenBtn">⛶</div>
+    <div id="leaderboardBtn">🏆</div>
+    
+    <!-- LİDERLİK TABLOSU -->
+    <div id="leaderboardPanel">
+        <h3>LİDERLİK TABLOSU</h3>
+        <div id="leaderboardList"></div>
+    </div>
+
     <div id="damageOverlay"></div>
     <div id="message">⚠️ KURTARMA SİSTEMİ<br><span style="font-size:10px; color:white;">YENİDEN KONUMLANDIRILIYOR</span></div>
     <div id="brand">Eggapps</div>
@@ -532,6 +570,59 @@
         }
         document.getElementById('fullscreenBtn').addEventListener('click', toggleFullScreen);
 
+        // --- LİDERLİK TABLOSU MANTIĞI ---
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const leaderboardPanel = document.getElementById('leaderboardPanel');
+        const leaderboardList = document.getElementById('leaderboardList');
+        let isLeaderboardOpen = false;
+
+        leaderboardBtn.addEventListener('click', () => {
+            isLeaderboardOpen = !isLeaderboardOpen;
+            if(isLeaderboardOpen) {
+                leaderboardPanel.style.display = 'block';
+                updateLeaderboard();
+            } else {
+                leaderboardPanel.style.display = 'none';
+            }
+        });
+
+        function updateLeaderboard() {
+            // Tüm oyuncuları bir listeye topla (kendin + rakipler)
+            let allPlayers = [];
+            
+            // Kendini ekle
+            if(myName) {
+                allPlayers.push({ name: myName, score: score });
+            }
+
+            // Rakipleri ekle
+            Object.keys(playersDataCache).forEach(key => {
+                if(key !== myPlayerId) {
+                    allPlayers.push({ 
+                        name: playersDataCache[key].name || "Bilinmiyor", 
+                        score: playersDataCache[key].score || 0
+                    });
+                }
+            });
+
+            // Puana göre büyükten küçüğe sırala
+            allPlayers.sort((a, b) => b.score - a.score);
+
+            // Listeyi HTML'e bas
+            leaderboardList.innerHTML = '';
+            allPlayers.forEach((p, index) => {
+                const row = document.createElement('div');
+                row.className = 'lb-row';
+                row.innerHTML = `<span class="lb-name">${index + 1}. ${p.name}</span><span class="lb-score">${p.score}</span>`;
+                leaderboardList.appendChild(row);
+            });
+        }
+        
+        // Tablo açıksa her 2 saniyede bir güncelle
+        setInterval(() => {
+            if(isLeaderboardOpen) updateLeaderboard();
+        }, 2000);
+
         // --- İZLEME SİSTEMİ ---
         function toggleCamera() {
             const availablePlayers = [null, ...Object.keys(otherPlayers)];
@@ -758,12 +849,17 @@
         const maxSpeed = 12.0, liftSpeed = 3.0;
 
         function resetGameVars() {
-            speed = 0; health = 100; score = 0; flame.visible = false;
+            speed = 0; health = 100;
+            // SKORU 0 YAPMA, 1000 EKSİLT (Ama 0'ın altına düşmesin)
+            score = Math.max(0, score - 1000);
+            
+            flame.visible = false;
             keys.w = false; keys.s = false; keys.up = false; keys.down = false; keys.left = false; keys.right = false;
             planeGroup.position.set(0, 2, 0); planeGroup.rotation.set(0, 0, 0);
-            document.getElementById('scoreDisplay').innerText = 0;
-            // Admin kill attıysa yeniden başlatınca canı sunucuya 100 olarak gönder
-            if(playerRef) update(playerRef, { health: 100 });
+            document.getElementById('scoreDisplay').innerText = score;
+            
+            // Firebase'i güncelle
+            if(playerRef) update(playerRef, { health: 100, score: score });
         }
 
         function takeDamage(amount) {
@@ -1060,6 +1156,7 @@
         });
 
         function refreshPlayerList() {
+            const savedValue = playerSelect.value;
             playerSelect.innerHTML = '';
             
             const selfOpt = document.createElement('option');
@@ -1076,6 +1173,17 @@
                     playerSelect.appendChild(opt);
                 }
             });
+
+            if(savedValue) {
+                let exists = false;
+                for(let i=0; i<playerSelect.options.length; i++){
+                    if(playerSelect.options[i].value === savedValue) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if(exists) playerSelect.value = savedValue;
+            }
         }
         
         setInterval(() => {
