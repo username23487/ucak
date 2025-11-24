@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 ONLINE - ARCADE MODE</title>
+    <title>F16 ONLINE - BALANCED ARCADE</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -802,11 +802,11 @@
             const oldPosition = planeGroup.position.clone();
             planeGroup.translateZ(-speed * speedFactor); 
 
-            // --- ARCADE MANEVRA SİSTEMİ (BURUN DÜŞMEZ) ---
+            // --- NERFLENMİŞ ARCADE MANEVRA SİSTEMİ ---
             if (speed > 0.5 && health > 0) {
-                const turnSpeed = 0.06 * speedFactor;
-                const rollSpeed = 0.08 * speedFactor; 
-                const yawSpeed = 0.05 * speedFactor; 
+                const turnSpeed = 0.045 * speedFactor; // Azaltıldı (0.06 -> 0.045)
+                const rollSpeed = 0.06 * speedFactor;  // Azaltıldı (0.08 -> 0.06)
+                const yawSpeed = 0.04 * speedFactor;   // Azaltıldı (0.05 -> 0.04)
 
                 if(keys.up && planeGroup.rotation.x < 1.2) planeGroup.rotation.x += turnSpeed;
                 if(keys.down && planeGroup.rotation.x > -1.2) planeGroup.rotation.x -= turnSpeed;
@@ -814,11 +814,11 @@
                 // UFUK EKSENİNDE DÖNÜŞ (Burun düşmez)
                 if (keys.left) { 
                     planeGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), yawSpeed);
-                    if (planeGroup.rotation.z < 1.4) planeGroup.rotation.z += rollSpeed; // Sadece görsel yatış
+                    if (planeGroup.rotation.z < 1.1) planeGroup.rotation.z += rollSpeed; // Açı Kısıldı (1.4 -> 1.1)
                 } 
                 else if (keys.right) { 
                     planeGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -yawSpeed);
-                    if (planeGroup.rotation.z > -1.4) planeGroup.rotation.z -= rollSpeed; 
+                    if (planeGroup.rotation.z > -1.1) planeGroup.rotation.z -= rollSpeed; 
                 } 
                 else {
                     // Tuşu bırakınca uçağı düzelt
