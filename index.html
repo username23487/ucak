@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 Final - Leaderboard & Score Fix</title>
+    <title>F16 MMO - Login System</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
-        /* --- GİRİŞ EKRANI --- */
+        /* --- GİRİŞ VE KAYIT EKRANI --- */
         #loginScreen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.95);
@@ -15,87 +15,51 @@
             z-index: 9999; color: #00ff00;
         }
         #loginScreen h1 {
-            font-size: 60px; font-family: 'Arial Black', sans-serif;
-            text-shadow: 0 0 20px #00ff00; margin-bottom: 20px; letter-spacing: 3px; text-align: center;
+            font-size: 50px; font-family: 'Arial Black', sans-serif;
+            text-shadow: 0 0 20px #00ff00; margin-bottom: 30px; letter-spacing: 2px; text-align: center;
         }
-        #usernameInput {
-            padding: 15px; font-size: 24px; border: 2px solid #00ff00;
-            background: #001100; color: #fff; border-radius: 5px;
-            width: 300px; text-align: center; outline: none; font-family: monospace;
+        .auth-container {
+            background: rgba(0, 20, 0, 0.8); border: 2px solid #00ff00;
+            padding: 30px; border-radius: 10px; box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+            display: flex; flex-direction: column; gap: 15px; width: 300px;
         }
-        #startBtn {
-            margin-top: 20px; padding: 15px 40px; font-size: 24px;
-            background: #00ff00; color: #000; border: none; border-radius: 5px;
-            cursor: pointer; font-weight: bold; transition: transform 0.2s;
+        .auth-input {
+            padding: 12px; font-size: 16px; border: 1px solid #00ff00;
+            background: #001100; color: #fff; border-radius: 4px;
+            outline: none; font-family: monospace; text-align: center;
         }
-        #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 20px #00ff00; }
+        .auth-btn-group { display: flex; gap: 10px; }
+        .auth-btn {
+            flex: 1; padding: 12px; font-size: 16px; font-weight: bold; cursor: pointer;
+            border: none; border-radius: 4px; transition: 0.2s;
+        }
+        #btnLogin { background: #00ff00; color: #000; }
+        #btnLogin:hover { background: #fff; box-shadow: 0 0 15px #fff; }
+        #btnRegister { background: #004400; color: #00ff00; border: 1px solid #00ff00; }
+        #btnRegister:hover { background: #006600; }
+        
+        #authMessage {
+            color: yellow; text-align: center; font-size: 12px; font-family: monospace;
+            min-height: 20px; margin-top: 10px;
+        }
 
-        /* --- GAME OVER EKRANI --- */
+        /* --- DİĞER STİLLER (AYNEN KORUNDU) --- */
         #gameOverScreen {
-            display: none;
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(50, 0, 0, 0.8);
-            flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10000; color: white;
-            backdrop-filter: blur(5px);
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(50, 0, 0, 0.8); flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10000; color: white; backdrop-filter: blur(5px);
         }
-        #gameOverScreen h2 {
-            font-size: 40px; font-family: 'Arial Black'; color: #ff3333; text-shadow: 0 0 20px red;
-            margin-bottom: 10px;
-        }
-        #restartBtn {
-            padding: 20px 50px; font-size: 24px; background: #ff0000; color: white;
-            border: 2px solid white; border-radius: 10px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-        }
-        #restartBtn:active { transform: scale(0.95); }
+        #gameOverScreen h2 { font-size: 40px; font-family: 'Arial Black'; color: #ff3333; text-shadow: 0 0 20px red; margin-bottom: 10px; }
+        #restartBtn { padding: 20px 50px; font-size: 24px; background: #ff0000; color: white; border: 2px solid white; border-radius: 10px; cursor: pointer; font-weight: bold; box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); }
+        
+        #fullscreenBtn { position: absolute; top: 20px; right: 190px; width: 40px; height: 40px; background: rgba(0, 0, 0, 0.5); border: 1px solid #00ff00; color: #00ff00; font-size: 24px; line-height: 40px; text-align: center; cursor: pointer; z-index: 200; border-radius: 5px; }
 
-        /* --- TAM EKRAN BUTONU --- */
-        #fullscreenBtn {
-            position: absolute; top: 20px; right: 190px;
-            width: 40px; height: 40px;
-            background: rgba(0, 0, 0, 0.5); border: 1px solid #00ff00; color: #00ff00;
-            font-size: 24px; line-height: 40px; text-align: center;
-            cursor: pointer; z-index: 200; border-radius: 5px;
-        }
+        #leaderboardBtn { position: absolute; top: 20px; right: 240px; width: 40px; height: 40px; background: rgba(0, 0, 0, 0.5); border: 1px solid #ffd700; color: #ffd700; font-size: 20px; line-height: 40px; text-align: center; cursor: pointer; z-index: 200; border-radius: 5px; }
+        #leaderboardPanel { display: none; position: absolute; top: 70px; right: 190px; width: 250px; background: rgba(0, 0, 0, 0.9); border: 2px solid #ffd700; border-radius: 5px; z-index: 201; padding: 10px; color: #ffd700; font-family: 'Courier New', monospace; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+        .lb-row { display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px; font-size: 14px; }
+        .lb-name { font-weight: bold; } .lb-score { color: white; }
 
-        /* --- LİDERLİK TABLOSU BUTONU VE PANELİ (YENİ) --- */
-        #leaderboardBtn {
-            position: absolute; top: 20px; right: 240px; /* Tam ekranın solunda */
-            width: 40px; height: 40px;
-            background: rgba(0, 0, 0, 0.5); border: 1px solid #ffd700; color: #ffd700;
-            font-size: 20px; line-height: 40px; text-align: center;
-            cursor: pointer; z-index: 200; border-radius: 5px;
-        }
-        #leaderboardPanel {
-            display: none;
-            position: absolute; top: 70px; right: 190px;
-            width: 250px; background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #ffd700; border-radius: 5px;
-            z-index: 201; padding: 10px; color: #ffd700;
-            font-family: 'Courier New', monospace;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-        }
-        #leaderboardPanel h3 {
-            margin: 0 0 10px 0; text-align: center; border-bottom: 1px solid #ffd700; padding-bottom: 5px; font-size: 16px;
-        }
-        .lb-row {
-            display: flex; justify-content: space-between;
-            margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px;
-            font-size: 14px;
-        }
-        .lb-name { font-weight: bold; }
-        .lb-score { color: white; }
-
-        /* --- HUD (SOL ÜST) --- */
-        #hud {
-            display: none;
-            position: absolute; top: 20px; left: 20px; width: 280px; padding: 15px;
-            color: #00ff00; background-color: rgba(0, 10, 0, 0.9);
-            border: 2px solid #00ff00; border-radius: 10px;
-            box-shadow: 0 0 25px rgba(0, 255, 0, 0.15); user-select: none; z-index: 100;
-            pointer-events: none;
-        }
+        #hud { display: none; position: absolute; top: 20px; left: 20px; width: 280px; padding: 15px; color: #00ff00; background-color: rgba(0, 10, 0, 0.9); border: 2px solid #00ff00; border-radius: 10px; box-shadow: 0 0 25px rgba(0, 255, 0, 0.15); user-select: none; z-index: 100; pointer-events: none; }
         .panel-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0, 255, 0, 0.5); padding-bottom: 8px; margin-bottom: 15px; font-weight: bold; }
         .rec-dot { width: 10px; height: 10px; background: red; border-radius: 50%; display: inline-block; animation: blink 1s infinite; margin-right: 5px; }
         @keyframes blink { 50% { opacity: 0.3; } }
@@ -107,63 +71,17 @@
         .stat-box { background: #000; border: 1px solid #00ff00; padding: 8px; text-align: center; }
         .stat-value { font-size: 22px; font-weight: bold; font-family: monospace; color: #fff; }
 
-        /* --- RADAR (SAĞ ÜST) --- */
-        #radarContainer {
-            display: none;
-            position: absolute; top: 20px; right: 20px;
-            width: 150px; height: 150px;
-            background: rgba(0, 10, 0, 0.85);
-            border: 2px solid #00ff00;
-            border-radius: 50%;
-            z-index: 100;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-            overflow: hidden;
-        }
+        #radarContainer { display: none; position: absolute; top: 20px; right: 20px; width: 150px; height: 150px; background: rgba(0, 10, 0, 0.85); border: 2px solid #00ff00; border-radius: 50%; z-index: 100; box-shadow: 0 0 15px rgba(0, 255, 0, 0.3); overflow: hidden; }
         #radarCanvas { width: 100%; height: 100%; }
-        .radar-label {
-            position: absolute; bottom: 5px; width: 100%; text-align: center;
-            font-size: 10px; color: #00ff00; font-weight: bold; pointer-events: none;
-        }
+        .radar-label { position: absolute; bottom: 5px; width: 100%; text-align: center; font-size: 10px; color: #00ff00; font-weight: bold; pointer-events: none; }
 
-        /* --- İZLEME BUTONU (SAĞDA RADARIN ALTINDA) --- */
-        #spectateControl {
-            display: none;
-            position: absolute; top: 180px; right: 20px;
-            z-index: 101;
-        }
-        #camBtn {
-            background: rgba(0, 20, 0, 0.9); color: #00ff00; border: 1px solid #00ff00;
-            padding: 8px 15px; cursor: pointer; font-family: monospace; font-weight: bold;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); transition: all 0.2s;
-        }
+        #spectateControl { display: none; position: absolute; top: 180px; right: 20px; z-index: 101; }
+        #camBtn { background: rgba(0, 20, 0, 0.9); color: #00ff00; border: 1px solid #00ff00; padding: 8px 15px; cursor: pointer; font-family: monospace; font-weight: bold; box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); transition: all 0.2s; }
         #camBtn:hover { background: #00ff00; color: #000; }
 
-        /* --- CHAT (SAĞ TARAFTA, KAMERA BUTONUNUN ALTINDA) --- */
-        #chatContainer {
-            display: none;
-            position: absolute; 
-            top: 230px; 
-            right: 20px; 
-            width: 200px; 
-            height: 150px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            z-index: 200;
-            flex-direction: column;
-            transition: height 0.3s ease;
-            pointer-events: auto;
-        }
-        
-        #chatHeader {
-            background: #004400; color: #00ff00; padding: 5px; font-size: 11px; font-weight: bold;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-            border-bottom: 1px solid #00ff00;
-        }
-        #toggleChatBtn {
-            background: transparent; border: 1px solid #00ff00; color: #00ff00;
-            width: 18px; height: 18px; line-height: 16px; text-align: center; font-weight: bold; cursor: pointer;
-        }
+        #chatContainer { display: none; position: absolute; top: 230px; right: 20px; width: 200px; height: 150px; background: rgba(0, 0, 0, 0.8); border: 1px solid #00ff00; border-radius: 5px; z-index: 200; flex-direction: column; transition: height 0.3s ease; pointer-events: auto; }
+        #chatHeader { background: #004400; color: #00ff00; padding: 5px; font-size: 11px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid #00ff00; }
+        #toggleChatBtn { background: transparent; border: 1px solid #00ff00; color: #00ff00; width: 18px; height: 18px; line-height: 16px; text-align: center; font-weight: bold; cursor: pointer; }
         #chatContent { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
         #chatMessages { flex: 1; overflow-y: auto; padding: 5px; font-size: 12px; color: #ddd; font-family: 'Courier New', monospace; }
         .chat-msg { margin-bottom: 4px; word-wrap: break-word; }
@@ -173,123 +91,56 @@
         #sendBtn { background: #004400; color: #00ff00; border: none; padding: 0 10px; cursor: pointer; font-weight: bold; font-size: 11px; }
         .chat-minimized { height: 28px !important; overflow: hidden; }
 
-        /* --- PC KONTROL BİLGİSİ --- */
-        #pcControls {
-            display: none;
-            position: absolute; top: 50%; left: 20px; transform: translateY(-50%);
-            background: rgba(0, 20, 0, 0.8); border: 1px solid #00ff00;
-            padding: 15px; border-radius: 10px; color: #00ff00; font-family: monospace;
-            z-index: 90; pointer-events: none;
-        }
+        #pcControls { display: none; position: absolute; top: 50%; left: 20px; transform: translateY(-50%); background: rgba(0, 20, 0, 0.8); border: 1px solid #00ff00; padding: 15px; border-radius: 10px; color: #00ff00; font-family: monospace; z-index: 90; pointer-events: none; }
         #pcControls h3 { border-bottom: 1px solid #00ff00; padding-bottom: 5px; margin-top: 0; }
-        .key-row { margin-bottom: 5px; }
-        .key { border: 1px solid #fff; padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
+        .key-row { margin-bottom: 5px; } .key { border: 1px solid #fff; padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
 
-        /* --- MOBİL KONTROLLER --- */
-        #mobileControls {
-            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 150; pointer-events: none;
-        }
+        #mobileControls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; pointer-events: none; }
         #touchZoneLeft { position: absolute; top: 0; left: 0; width: 50%; height: 100%; pointer-events: auto; }
-        #dynamicJoystick {
-            display: none; position: absolute; width: 120px; height: 120px;
-            background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 255, 0, 0.5);
-            border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%);
-        }
-        #dynamicKnob {
-            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
-            background: rgba(0, 255, 0, 0.8); border-radius: 50%;
-            transform: translate(-50%, -50%); box-shadow: 0 0 15px #00ff00;
-        }
-        
-        /* GAZ BUTONU */
-        #throttleBtn {
-            position: absolute; bottom: 40px; right: 40px;
-            width: 90px; height: 90px;
-            background: rgba(0, 255, 0, 0.2); border: 3px solid #00ff00; border-radius: 50%;
-            color: white; font-weight: bold; font-family: monospace; font-size: 16px;
-            display: flex; justify-content: center; align-items: center;
-            pointer-events: auto; user-select: none;
-        }
+        #dynamicJoystick { display: none; position: absolute; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 255, 0, 0.5); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
+        #dynamicKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: rgba(0, 255, 0, 0.8); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 15px #00ff00; }
+        #throttleBtn { position: absolute; bottom: 40px; right: 40px; width: 90px; height: 90px; background: rgba(0, 255, 0, 0.2); border: 3px solid #00ff00; border-radius: 50%; color: white; font-weight: bold; font-family: monospace; font-size: 16px; display: flex; justify-content: center; align-items: center; pointer-events: auto; user-select: none; }
         #throttleBtn:active { background: rgba(0, 255, 0, 0.6); box-shadow: 0 0 20px #00ff00; }
-
-        /* FREN BUTONU */
-        #brakeBtnMobile {
-            position: absolute; bottom: 40px; right: 150px;
-            width: 70px; height: 70px;
-            background: rgba(255, 0, 0, 0.2); border: 3px solid #ff0000; border-radius: 50%;
-            color: white; font-weight: bold; font-family: monospace; font-size: 14px;
-            display: flex; justify-content: center; align-items: center;
-            pointer-events: auto; user-select: none;
-        }
+        #brakeBtnMobile { position: absolute; bottom: 40px; right: 150px; width: 70px; height: 70px; background: rgba(255, 0, 0, 0.2); border: 3px solid #ff0000; border-radius: 50%; color: white; font-weight: bold; font-family: monospace; font-size: 14px; display: flex; justify-content: center; align-items: center; pointer-events: auto; user-select: none; }
         #brakeBtnMobile:active { background: rgba(255, 0, 0, 0.6); box-shadow: 0 0 20px red; }
 
         #brand { position: absolute; top: 30px; right: 290px; font-family: 'Arial Black'; font-size: 36px; color: #ffffff; text-shadow: 0 0 25px #00ff00; pointer-events: none; z-index: 100; opacity: 0.5; }
         #damageOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, transparent 50%, red 150%); opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 50; }
-        #message {
-            position: absolute; top: 100px; right: 190px; width: 200px;
-            color: #ff3333; font-family: 'Arial Black', sans-serif; font-size: 14px;
-            text-shadow: 0 0 5px #000; display: none; z-index: 101;
-            background: rgba(0, 0, 0, 0.8); padding: 15px; border: 2px solid red; border-radius: 5px; text-align: center;
-        }
+        #message { position: absolute; top: 100px; right: 190px; width: 200px; color: #ff3333; font-family: 'Arial Black', sans-serif; font-size: 14px; text-shadow: 0 0 5px #000; display: none; z-index: 101; background: rgba(0, 0, 0, 0.8); padding: 15px; border: 2px solid red; border-radius: 5px; text-align: center; }
         .score-popup { position: absolute; color: #ffd700; font-weight: bold; font-size: 30px; font-family: 'Arial Black'; text-shadow: 0 0 15px orange; animation: floatUp 1s ease-out forwards; pointer-events: none; z-index: 102; }
         @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-80px) scale(1.2); opacity: 0; } }
 
-        /* --- ADMIN PANEL STİLİ --- */
-        #adminOpenBtn {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.5); color: #444; border: 1px solid #444;
-            padding: 5px 10px; cursor: pointer; font-size: 10px; z-index: 200;
-            font-family: monospace; transition: all 0.3s;
-        }
+        /* --- ADMIN PANEL --- */
+        #adminOpenBtn { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: #444; border: 1px solid #444; padding: 5px 10px; cursor: pointer; font-size: 10px; z-index: 200; font-family: monospace; transition: all 0.3s; }
         #adminOpenBtn:hover { color: #00ff00; border-color: #00ff00; }
-
-        #adminPanel {
-            display: none; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); width: 320px;
-            background: #000; border: 2px solid #00ff00;
-            box-shadow: 0 0 30px #00ff00; z-index: 10000;
-            padding: 20px; font-family: 'Courier New', monospace;
-            color: #00ff00;
-        }
-
+        #adminPanel { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: #000; border: 2px solid #00ff00; box-shadow: 0 0 30px #00ff00; z-index: 10000; padding: 20px; font-family: 'Courier New', monospace; color: #00ff00; }
         #adminLogin, #adminDashboard { display: flex; flex-direction: column; gap: 10px; }
-        #adminDashboard { display: none; } /* Başlangıçta gizli */
-
-        #adminPass {
-            background: #111; border: 1px solid #00ff00; color: #fff;
-            padding: 10px; outline: none; text-align: center;
-        }
-        
-        #adminLoginBtn, .adm-btn {
-            background: #004400; color: #00ff00; border: 1px solid #00ff00;
-            padding: 10px; cursor: pointer; font-weight: bold;
-        }
+        #adminDashboard { display: none; }
+        #adminPass { background: #111; border: 1px solid #00ff00; color: #fff; padding: 10px; outline: none; text-align: center; }
+        #adminLoginBtn, .adm-btn { background: #004400; color: #00ff00; border: 1px solid #00ff00; padding: 10px; cursor: pointer; font-weight: bold; }
         #adminLoginBtn:hover, .adm-btn:hover { background: #00ff00; color: #000; }
-        
         #adminError { color: red; text-align: center; display: none; font-weight: bold; }
-
-        #playerSelect {
-            background: #111; color: #fff; border: 1px solid #00ff00;
-            padding: 5px; margin-bottom: 10px; width: 100%;
-        }
-
+        #playerSelect { background: #111; color: #fff; border: 1px solid #00ff00; padding: 5px; margin-bottom: 10px; width: 100%; }
         .control-group { border: 1px solid #333; padding: 10px; margin-bottom: 5px; }
         .row { display: flex; gap: 5px; margin-top: 5px; }
         .row input { width: 60%; background: #222; border: 1px solid #555; color: white; padding: 5px; }
-        
-        .kill-btn {
-            width: 100%; background: #330000; color: red; border: 1px solid red;
-            padding: 15px; font-weight: bold; cursor: pointer; margin-top: 5px;
-        }
+        .kill-btn { width: 100%; background: #330000; color: red; border: 1px solid red; padding: 15px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .kill-btn:hover { background: red; color: white; box-shadow: 0 0 15px red; }
     </style>
 </head>
 <body>
+    <!-- YENİ GİRİŞ EKRANI -->
     <div id="loginScreen">
-        <h1>EGGAPPS F16</h1>
-        <input type="text" id="usernameInput" placeholder="PİLOT ADI GİRİN" maxlength="12">
-        <button id="startBtn">UÇUŞA BAŞLA</button>
+        <h1>F16 ONLINE</h1>
+        <div class="auth-container">
+            <input type="text" id="authUsername" class="auth-input" placeholder="Kullanıcı Adı" maxlength="15">
+            <input type="password" id="authPassword" class="auth-input" placeholder="Şifre" maxlength="20">
+            <div id="authMessage"></div>
+            <div class="auth-btn-group">
+                <button id="btnLogin" class="auth-btn">GİRİŞ YAP</button>
+                <button id="btnRegister" class="auth-btn">KAYIT OL</button>
+            </div>
+        </div>
     </div>
 
     <div id="gameOverScreen">
@@ -332,7 +183,10 @@
             </div>
             
             <label>HEDEF OYUNCU:</label>
-            <select id="playerSelect"></select>
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <select id="playerSelect"></select>
+                <button id="refreshListBtn" style="background:#004400; border:1px solid #00ff00; color:#fff; cursor:pointer;">↺</button>
+            </div>
 
             <div class="control-group">
                 <label>PUAN AYARLA:</label>
@@ -424,7 +278,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onDisconnect, onValue, onChildAdded, query, limitToLast, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onDisconnect, onValue, onChildAdded, query, limitToLast, update, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyConJs82OWJReQWyyyWr00NTdBH9lAsEtQ",
@@ -560,214 +414,58 @@
         planeGroup.rotation.order = 'YXZ';
         const playerBox = new THREE.Box3();
 
-        // --- TAM EKRAN BUTONU ---
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {});
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
-            }
-        }
-        document.getElementById('fullscreenBtn').addEventListener('click', toggleFullScreen);
+        // --- AUTH (KAYIT VE GİRİŞ SİSTEMİ) ---
+        const authUser = document.getElementById('authUsername');
+        const authPass = document.getElementById('authPassword');
+        const authMsg = document.getElementById('authMessage');
 
-        // --- LİDERLİK TABLOSU MANTIĞI ---
-        const leaderboardBtn = document.getElementById('leaderboardBtn');
-        const leaderboardPanel = document.getElementById('leaderboardPanel');
-        const leaderboardList = document.getElementById('leaderboardList');
-        let isLeaderboardOpen = false;
+        function sanitize(str) { return str.replace(/[.#$\[\]]/g, ""); } // Firebase yasaklı karakterler
 
-        leaderboardBtn.addEventListener('click', () => {
-            isLeaderboardOpen = !isLeaderboardOpen;
-            if(isLeaderboardOpen) {
-                leaderboardPanel.style.display = 'block';
-                updateLeaderboard();
-            } else {
-                leaderboardPanel.style.display = 'none';
-            }
-        });
+        // KAYIT OL
+        document.getElementById('btnRegister').addEventListener('click', () => {
+            const u = sanitize(authUser.value.trim());
+            const p = authPass.value.trim();
+            if(u.length < 3 || p.length < 3) { authMsg.innerText = "İsim/Şifre çok kısa!"; return; }
 
-        function updateLeaderboard() {
-            // Tüm oyuncuları bir listeye topla (kendin + rakipler)
-            let allPlayers = [];
-            
-            // Kendini ekle
-            if(myName) {
-                allPlayers.push({ name: myName, score: score });
-            }
-
-            // Rakipleri ekle
-            Object.keys(playersDataCache).forEach(key => {
-                if(key !== myPlayerId) {
-                    allPlayers.push({ 
-                        name: playersDataCache[key].name || "Bilinmiyor", 
-                        score: playersDataCache[key].score || 0
-                    });
+            const userRef = ref(db, 'users/' + u);
+            get(userRef).then((snapshot) => {
+                if(snapshot.exists()) {
+                    authMsg.innerText = "Bu kullanıcı adı alınmış!";
+                } else {
+                    set(userRef, { password: p, score: 0 }); // Şifreyi kaydet
+                    authMsg.innerText = "Kayıt Başarılı! Şimdi Giriş Yapın.";
+                    authMsg.style.color = "#00ff00";
                 }
-            });
+            }).catch(err => { authMsg.innerText = "Hata oluştu."; });
+        });
 
-            // Puana göre büyükten küçüğe sırala
-            allPlayers.sort((a, b) => b.score - a.score);
+        // GİRİŞ YAP
+        document.getElementById('btnLogin').addEventListener('click', () => {
+            const u = sanitize(authUser.value.trim());
+            const p = authPass.value.trim();
+            if(u === "" || p === "") { authMsg.innerText = "Bilgileri girin."; return; }
 
-            // Listeyi HTML'e bas
-            leaderboardList.innerHTML = '';
-            allPlayers.forEach((p, index) => {
-                const row = document.createElement('div');
-                row.className = 'lb-row';
-                row.innerHTML = `<span class="lb-name">${index + 1}. ${p.name}</span><span class="lb-score">${p.score}</span>`;
-                leaderboardList.appendChild(row);
-            });
-        }
-        
-        // Tablo açıksa her 2 saniyede bir güncelle
-        setInterval(() => {
-            if(isLeaderboardOpen) updateLeaderboard();
-        }, 2000);
-
-        // --- İZLEME SİSTEMİ ---
-        function toggleCamera() {
-            const availablePlayers = [null, ...Object.keys(otherPlayers)];
-            let currentIndex = availablePlayers.indexOf(spectateId);
-            if (currentIndex === -1) currentIndex = 0;
-            let nextIndex = (currentIndex + 1) % availablePlayers.length;
-            spectateId = availablePlayers[nextIndex];
-
-            const btn = document.getElementById('camBtn');
-            if (spectateId === null) {
-                btn.innerText = "KAMERA: SEN";
-                btn.style.borderColor = "#00ff00";
-            } else {
-                let targetName = "PİLOT";
-                if(playersDataCache[spectateId] && playersDataCache[spectateId].name) {
-                    targetName = playersDataCache[spectateId].name;
+            const userRef = ref(db, 'users/' + u);
+            get(userRef).then((snapshot) => {
+                if(snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if(userData.password === p) {
+                        startGame(u); // Başarılı Giriş
+                    } else {
+                        authMsg.innerText = "Şifre Yanlış!";
+                        authMsg.style.color = "red";
+                    }
+                } else {
+                    authMsg.innerText = "Kullanıcı bulunamadı!";
+                    authMsg.style.color = "red";
                 }
-                btn.innerText = "İZLENİYOR: " + targetName;
-                btn.style.borderColor = "#ff0000";
-            }
-        }
-        document.getElementById('camBtn').addEventListener('click', toggleCamera);
-        document.addEventListener('keydown', (e) => {
-             if (document.activeElement !== chatInput && (e.key === 'c' || e.key === 'C')) {
-                 toggleCamera();
-             }
+            }).catch(err => { authMsg.innerText = "Bağlantı hatası."; });
         });
 
-        // --- RADAR ---
-        const radarCanvas = document.getElementById('radarCanvas');
-        const radarCtx = radarCanvas.getContext('2d');
-        const RADAR_RANGE = 5000;
-
-        function drawRadar() {
-            radarCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
-            const cw = radarCanvas.width;
-            const ch = radarCanvas.height;
-            const cx = cw / 2;
-            const cy = ch / 2;
-
-            radarCtx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
-            radarCtx.lineWidth = 1;
-            radarCtx.beginPath(); radarCtx.arc(cx, cy, cw/2 - 2, 0, Math.PI*2); radarCtx.stroke();
-            radarCtx.beginPath(); radarCtx.arc(cx, cy, cw/4, 0, Math.PI*2); radarCtx.stroke();
-            radarCtx.beginPath(); radarCtx.moveTo(0, cy); radarCtx.lineTo(cw, cy); radarCtx.stroke();
-            radarCtx.beginPath(); radarCtx.moveTo(cx, 0); radarCtx.lineTo(cx, ch); radarCtx.stroke();
-
-            radarCtx.save();
-            radarCtx.translate(cx, cy);
-            
-            let currentRotY = planeGroup.rotation.y;
-            if(spectateId && otherPlayers[spectateId]) {
-                currentRotY = otherPlayers[spectateId].userData.targetRot ? new THREE.Euler().setFromQuaternion(otherPlayers[spectateId].quaternion).y : otherPlayers[spectateId].rotation.y;
-            }
-            radarCtx.rotate(-currentRotY); 
-
-            radarCtx.fillStyle = '#00ff00';
-            radarCtx.beginPath();
-            radarCtx.moveTo(0, -7); radarCtx.lineTo(5, 5); radarCtx.lineTo(-5, 5); 
-            radarCtx.closePath(); radarCtx.fill();
-            radarCtx.restore();
-
-            let centerPos = planeGroup.position;
-            if(spectateId && otherPlayers[spectateId]) {
-                centerPos = otherPlayers[spectateId].position;
-            }
-
-            if(spectateId) {
-                const dx = planeGroup.position.x - centerPos.x;
-                const dz = planeGroup.position.z - centerPos.z;
-                const mapX = cx + (dx / RADAR_RANGE) * (cw/2);
-                const mapY = cy + (dz / RADAR_RANGE) * (ch/2);
-                if (mapX > 0 && mapX < cw && mapY > 0 && mapY < ch) {
-                    radarCtx.fillStyle = '#ff0000';
-                    radarCtx.beginPath(); radarCtx.arc(mapX, mapY, 4, 0, Math.PI*2); radarCtx.fill();
-                }
-            }
-
-            Object.keys(otherPlayers).forEach(key => {
-                if(key === spectateId) return; 
-
-                const enemy = otherPlayers[key];
-                const dx = enemy.position.x - centerPos.x;
-                const dz = enemy.position.z - centerPos.z;
-                const mapX = cx + (dx / RADAR_RANGE) * (cw/2);
-                const mapY = cy + (dz / RADAR_RANGE) * (ch/2);
-                if (mapX > 0 && mapX < cw && mapY > 0 && mapY < ch) {
-                    radarCtx.fillStyle = '#ff0000';
-                    radarCtx.beginPath(); radarCtx.arc(mapX, mapY, 4, 0, Math.PI*2); radarCtx.fill();
-                }
-            });
-        }
-
-        // --- CHAT SİSTEMİ ---
-        const chatRef = ref(db, 'chat');
-        const chatInput = document.getElementById('chatInput');
-        const chatMessages = document.getElementById('chatMessages');
-        const chatContainer = document.getElementById('chatContainer');
-        const toggleChatBtn = document.getElementById('toggleChatBtn');
-        let isChatMinimized = false;
-
-        document.getElementById('chatHeader').addEventListener('click', (e) => {
-            e.stopPropagation(); 
-            isChatMinimized = !isChatMinimized;
-            if(isChatMinimized) {
-                chatContainer.classList.add('chat-minimized');
-                toggleChatBtn.innerText = "□";
-            } else {
-                chatContainer.classList.remove('chat-minimized');
-                toggleChatBtn.innerText = "_";
-            }
-        });
-
-        chatContainer.addEventListener('touchstart', (e) => { e.stopPropagation(); });
-        chatContainer.addEventListener('touchmove', (e) => { e.stopPropagation(); });
-        chatContainer.addEventListener('touchend', (e) => { e.stopPropagation(); });
-
-        function sendMessage() {
-            const text = chatInput.value.trim();
-            if (text !== "") {
-                push(chatRef, { sender: myName, text: text });
-                chatInput.value = "";
-            }
-        }
-        document.getElementById('sendBtn').addEventListener('click', sendMessage);
-        chatInput.addEventListener('keydown', (e) => {
-            e.stopPropagation();
-            if (e.key === 'Enter') sendMessage();
-        });
-        const recentMessagesQuery = query(chatRef, limitToLast(20));
-        onChildAdded(recentMessagesQuery, (snapshot) => {
-            const msg = snapshot.val();
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'chat-msg';
-            msgDiv.innerHTML = `<span class="chat-name">${msg.sender}:</span> ${msg.text}`;
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-
-        // --- OYUN BAŞLATMA ---
-        document.getElementById('startBtn').addEventListener('click', () => {
-            const inputVal = document.getElementById('usernameInput').value;
-            if(!inputVal.trim()) { alert("İsim yazmadan uçamazsın!"); return; }
-            myName = inputVal;
-            myPlayerId = 'pilot_' + Math.random().toString(36).substr(2, 5);
+        // OYUNU BAŞLAT
+        function startGame(username) {
+            myName = username;
+            myPlayerId = 'pilot_' + Math.random().toString(36).substr(2, 5); // Fiziksel ID yine random kalsın
             
             toggleFullScreen();
 
@@ -804,7 +502,6 @@
                     score = serverScore;
                 }
             });
-            // ----------------------------------------------
 
             const allPlayersRef = ref(db, 'players');
             onValue(allPlayersRef, (snapshot) => {
@@ -834,6 +531,148 @@
             });
             gameActive = true;
             animate();
+        }
+
+        // --- TAM EKRAN BUTONU ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+        document.getElementById('fullscreenBtn').addEventListener('click', toggleFullScreen);
+
+        // --- LİDERLİK TABLOSU ---
+        const leaderboardBtn = document.getElementById('leaderboardBtn');
+        const leaderboardPanel = document.getElementById('leaderboardPanel');
+        const leaderboardList = document.getElementById('leaderboardList');
+        let isLeaderboardOpen = false;
+
+        leaderboardBtn.addEventListener('click', () => {
+            isLeaderboardOpen = !isLeaderboardOpen;
+            if(isLeaderboardOpen) {
+                leaderboardPanel.style.display = 'block';
+                updateLeaderboard();
+            } else {
+                leaderboardPanel.style.display = 'none';
+            }
+        });
+
+        function updateLeaderboard() {
+            let allPlayers = [];
+            if(myName) allPlayers.push({ name: myName, score: score });
+            Object.keys(playersDataCache).forEach(key => {
+                if(key !== myPlayerId) {
+                    allPlayers.push({ 
+                        name: playersDataCache[key].name || "Bilinmiyor", 
+                        score: playersDataCache[key].score || 0
+                    });
+                }
+            });
+            allPlayers.sort((a, b) => b.score - a.score);
+            leaderboardList.innerHTML = '';
+            allPlayers.forEach((p, index) => {
+                const row = document.createElement('div');
+                row.className = 'lb-row';
+                row.innerHTML = `<span class="lb-name">${index + 1}. ${p.name}</span><span class="lb-score">${p.score}</span>`;
+                leaderboardList.appendChild(row);
+            });
+        }
+        setInterval(() => { if(isLeaderboardOpen) updateLeaderboard(); }, 2000);
+
+        // --- İZLEME SİSTEMİ ---
+        function toggleCamera() {
+            const availablePlayers = [null, ...Object.keys(otherPlayers)];
+            let currentIndex = availablePlayers.indexOf(spectateId);
+            if (currentIndex === -1) currentIndex = 0;
+            let nextIndex = (currentIndex + 1) % availablePlayers.length;
+            spectateId = availablePlayers[nextIndex];
+            const btn = document.getElementById('camBtn');
+            if (spectateId === null) {
+                btn.innerText = "KAMERA: SEN"; btn.style.borderColor = "#00ff00";
+            } else {
+                let targetName = "PİLOT";
+                if(playersDataCache[spectateId] && playersDataCache[spectateId].name) {
+                    targetName = playersDataCache[spectateId].name;
+                }
+                btn.innerText = "İZLENİYOR: " + targetName; btn.style.borderColor = "#ff0000";
+            }
+        }
+        document.getElementById('camBtn').addEventListener('click', toggleCamera);
+        document.addEventListener('keydown', (e) => {
+             if (document.activeElement !== chatInput && document.activeElement !== authUser && document.activeElement !== authPass && (e.key === 'c' || e.key === 'C')) {
+                 toggleCamera();
+             }
+        });
+
+        // --- RADAR ---
+        const radarCanvas = document.getElementById('radarCanvas');
+        const radarCtx = radarCanvas.getContext('2d');
+        const RADAR_RANGE = 5000;
+
+        function drawRadar() {
+            radarCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
+            const cw = radarCanvas.width; const ch = radarCanvas.height;
+            const cx = cw / 2; const cy = ch / 2;
+            radarCtx.strokeStyle = 'rgba(0, 255, 0, 0.3)'; radarCtx.lineWidth = 1;
+            radarCtx.beginPath(); radarCtx.arc(cx, cy, cw/2 - 2, 0, Math.PI*2); radarCtx.stroke();
+            radarCtx.beginPath(); radarCtx.arc(cx, cy, cw/4, 0, Math.PI*2); radarCtx.stroke();
+            radarCtx.beginPath(); radarCtx.moveTo(0, cy); radarCtx.lineTo(cw, cy); radarCtx.stroke();
+            radarCtx.beginPath(); radarCtx.moveTo(cx, 0); radarCtx.lineTo(cx, ch); radarCtx.stroke();
+            radarCtx.save(); radarCtx.translate(cx, cy);
+            let currentRotY = planeGroup.rotation.y;
+            if(spectateId && otherPlayers[spectateId]) {
+                currentRotY = otherPlayers[spectateId].userData.targetRot ? new THREE.Euler().setFromQuaternion(otherPlayers[spectateId].quaternion).y : otherPlayers[spectateId].rotation.y;
+            }
+            radarCtx.rotate(-currentRotY); 
+            radarCtx.fillStyle = '#00ff00'; radarCtx.beginPath(); radarCtx.moveTo(0, -7); radarCtx.lineTo(5, 5); radarCtx.lineTo(-5, 5); radarCtx.closePath(); radarCtx.fill();
+            radarCtx.restore();
+            let centerPos = planeGroup.position;
+            if(spectateId && otherPlayers[spectateId]) centerPos = otherPlayers[spectateId].position;
+            if(spectateId) {
+                const dx = planeGroup.position.x - centerPos.x; const dz = planeGroup.position.z - centerPos.z;
+                const mapX = cx + (dx / RADAR_RANGE) * (cw/2); const mapY = cy + (dz / RADAR_RANGE) * (ch/2);
+                if (mapX > 0 && mapX < cw && mapY > 0 && mapY < ch) { radarCtx.fillStyle = '#ff0000'; radarCtx.beginPath(); radarCtx.arc(mapX, mapY, 4, 0, Math.PI*2); radarCtx.fill(); }
+            }
+            Object.keys(otherPlayers).forEach(key => {
+                if(key === spectateId) return; 
+                const enemy = otherPlayers[key];
+                const dx = enemy.position.x - centerPos.x; const dz = enemy.position.z - centerPos.z;
+                const mapX = cx + (dx / RADAR_RANGE) * (cw/2); const mapY = cy + (dz / RADAR_RANGE) * (ch/2);
+                if (mapX > 0 && mapX < cw && mapY > 0 && mapY < ch) { radarCtx.fillStyle = '#ff0000'; radarCtx.beginPath(); radarCtx.arc(mapX, mapY, 4, 0, Math.PI*2); radarCtx.fill(); }
+            });
+        }
+
+        // --- CHAT SİSTEMİ ---
+        const chatRef = ref(db, 'chat');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatContainer = document.getElementById('chatContainer');
+        const toggleChatBtn = document.getElementById('toggleChatBtn');
+        let isChatMinimized = false;
+
+        document.getElementById('chatHeader').addEventListener('click', (e) => {
+            e.stopPropagation(); isChatMinimized = !isChatMinimized;
+            if(isChatMinimized) { chatContainer.classList.add('chat-minimized'); toggleChatBtn.innerText = "□"; } 
+            else { chatContainer.classList.remove('chat-minimized'); toggleChatBtn.innerText = "_"; }
+        });
+        chatContainer.addEventListener('touchstart', (e) => { e.stopPropagation(); });
+        chatContainer.addEventListener('touchmove', (e) => { e.stopPropagation(); });
+        chatContainer.addEventListener('touchend', (e) => { e.stopPropagation(); });
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text !== "") { push(chatRef, { sender: myName, text: text }); chatInput.value = ""; }
+        }
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') sendMessage(); });
+        const recentMessagesQuery = query(chatRef, limitToLast(20));
+        onChildAdded(recentMessagesQuery, (snapshot) => {
+            const msg = snapshot.val();
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-msg';
+            msgDiv.innerHTML = `<span class="chat-name">${msg.sender}:</span> ${msg.text}`;
+            chatMessages.appendChild(msgDiv); chatMessages.scrollTop = chatMessages.scrollHeight;
         });
 
         document.getElementById('restartBtn').addEventListener('click', () => {
@@ -850,15 +689,11 @@
 
         function resetGameVars() {
             speed = 0; health = 100;
-            // SKORU 0 YAPMA, 1000 EKSİLT (Ama 0'ın altına düşmesin)
-            score = Math.max(0, score - 1000);
-            
+            score = Math.max(0, score - 1000); // Ölüm cezası
             flame.visible = false;
             keys.w = false; keys.s = false; keys.up = false; keys.down = false; keys.left = false; keys.right = false;
             planeGroup.position.set(0, 2, 0); planeGroup.rotation.set(0, 0, 0);
             document.getElementById('scoreDisplay').innerText = score;
-            
-            // Firebase'i güncelle
             if(playerRef) update(playerRef, { health: 100, score: score });
         }
 
@@ -866,10 +701,7 @@
             health -= amount; lastDamageTime = Date.now();
             document.getElementById('damageOverlay').style.opacity = 0.8;
             setTimeout(() => document.getElementById('damageOverlay').style.opacity = 0, 200);
-            if(health <= 0) { 
-                health = 0; 
-                document.getElementById('gameOverScreen').style.display = 'flex';
-            }
+            if(health <= 0) { health = 0; document.getElementById('gameOverScreen').style.display = 'flex'; }
         }
 
         function updateHUD(currentName, currentScore, currentHealth, currentSpeed, currentAlt) {
@@ -877,19 +709,16 @@
             document.getElementById('scoreDisplay').innerText = currentScore;
             document.getElementById('hpText').innerText = Math.round(currentHealth) + "%";
             document.getElementById('healthBar').style.width = currentHealth + "%";
-            
             const bar = document.getElementById('healthBar');
             if(currentHealth > 50) bar.style.background = "linear-gradient(90deg, #00ff00, #aaff00)";
             else if(currentHealth > 20) bar.style.background = "linear-gradient(90deg, #ffa500, #ffcc00)";
             else bar.style.background = "linear-gradient(90deg, #ff0000, #ff5500)";
-
             document.getElementById('speedDisplay').innerText = Math.floor(currentSpeed * 120);
             document.getElementById('altDisplay').innerText = Math.floor(currentAlt - 2);
         }
 
-        // --- KLAVYE KONTROLLERİ ---
         document.addEventListener('keydown', (e) => {
-            if (document.activeElement === chatInput || document.activeElement.tagName === 'INPUT') return;
+            if (document.activeElement === chatInput || document.activeElement === authUser || document.activeElement === authPass) return;
             if(e.key === 'w' || e.key === 'W') keys.w = true;
             if(e.key === 's' || e.key === 'S') keys.s = true; 
             if(e.key === 'ArrowUp') keys.up = true;
@@ -906,72 +735,47 @@
             if(e.key === 'ArrowRight') keys.right = false;
         });
 
-        // --- MOBİL KONTROLLER ---
         if(isMobile) {
             const touchZoneLeft = document.getElementById('touchZoneLeft');
             const dynamicJoystick = document.getElementById('dynamicJoystick');
             const dynamicKnob = document.getElementById('dynamicKnob');
             const throttleBtn = document.getElementById('throttleBtn');
             const brakeBtnMobile = document.getElementById('brakeBtnMobile');
-            
-            let joyCenterX, joyCenterY;
-            const joyMaxRadius = 40; 
-            let activeTouchId = null;
-
+            let joyCenterX, joyCenterY; const joyMaxRadius = 40; let activeTouchId = null;
             touchZoneLeft.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                const touch = e.changedTouches[0];
-                activeTouchId = touch.identifier;
-                joyCenterX = touch.clientX;
-                joyCenterY = touch.clientY;
-                dynamicJoystick.style.left = joyCenterX + 'px';
-                dynamicJoystick.style.top = joyCenterY + 'px';
-                dynamicJoystick.style.display = 'block';
-                dynamicKnob.style.transform = `translate(-50%, -50%)`;
+                e.preventDefault(); const touch = e.changedTouches[0]; activeTouchId = touch.identifier;
+                joyCenterX = touch.clientX; joyCenterY = touch.clientY;
+                dynamicJoystick.style.left = joyCenterX + 'px'; dynamicJoystick.style.top = joyCenterY + 'px';
+                dynamicJoystick.style.display = 'block'; dynamicKnob.style.transform = `translate(-50%, -50%)`;
             });
-
             touchZoneLeft.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === activeTouchId) {
-                        const touch = e.changedTouches[i];
-                        moveJoystick(touch.clientX, touch.clientY);
-                        break;
+                        const touch = e.changedTouches[i]; moveJoystick(touch.clientX, touch.clientY); break;
                     }
                 }
             });
-
             touchZoneLeft.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === activeTouchId) {
-                        dynamicJoystick.style.display = 'none';
-                        activeTouchId = null;
-                        keys.up = false; keys.down = false; keys.left = false; keys.right = false;
-                        break;
+                        dynamicJoystick.style.display = 'none'; activeTouchId = null;
+                        keys.up = false; keys.down = false; keys.left = false; keys.right = false; break;
                     }
                 }
             });
-
             function moveJoystick(x, y) {
-                let dx = x - joyCenterX;
-                let dy = y - joyCenterY;
+                let dx = x - joyCenterX; let dy = y - joyCenterY;
                 const distance = Math.sqrt(dx*dx + dy*dy);
-                if (distance > joyMaxRadius) {
-                    const ratio = joyMaxRadius / distance;
-                    dx *= ratio; dy *= ratio;
-                }
+                if (distance > joyMaxRadius) { const ratio = joyMaxRadius / distance; dx *= ratio; dy *= ratio; }
                 dynamicKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
                 const threshold = 10;
-                keys.up = (dy < -threshold);
-                keys.down = (dy > threshold);
-                keys.left = (dx < -threshold);
-                keys.right = (dx > threshold);
+                keys.up = (dy < -threshold); keys.down = (dy > threshold);
+                keys.left = (dx < -threshold); keys.right = (dx > threshold);
             }
-
             throttleBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.w = true; throttleBtn.style.background = "rgba(0,255,0,0.6)"; });
             throttleBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.w = false; throttleBtn.style.background = "rgba(0,255,0,0.2)"; });
-
             brakeBtnMobile.addEventListener('touchstart', (e) => { e.preventDefault(); keys.s = true; brakeBtnMobile.style.background = "rgba(255,0,0,0.6)"; });
             brakeBtnMobile.addEventListener('touchend', (e) => { e.preventDefault(); keys.s = false; brakeBtnMobile.style.background = "rgba(255,0,0,0.2)"; });
         }
@@ -981,16 +785,9 @@
         function animate() {
             if(!gameActive) return;
             requestAnimationFrame(animate);
-
-            const delta = clock.getDelta(); 
-            const speedFactor = delta * 60; 
-
+            const delta = clock.getDelta(); const speedFactor = delta * 60; 
             drawRadar();
-
-            if (health > 0 && health < 100 && Date.now() - lastDamageTime > 10000) {
-                health += 0.1 * speedFactor; 
-            }
-
+            if (health > 0 && health < 100 && Date.now() - lastDamageTime > 10000) { health += 0.1 * speedFactor; }
             Object.keys(otherPlayers).forEach(key => {
                 const enemy = otherPlayers[key];
                 if(enemy.userData.targetPos) {
@@ -998,90 +795,49 @@
                     enemy.quaternion.slerp(enemy.userData.targetRot, 0.1 * speedFactor);
                 }
             });
-
-            if (spectateId === null) {
-                updateHUD(myName, score, health, speed, planeGroup.position.y);
-            } else {
+            if (spectateId === null) { updateHUD(myName, score, health, speed, planeGroup.position.y); } 
+            else {
                 const pData = playersDataCache[spectateId];
                 if (pData) {
-                    const sName = pData.name || "Bilinmiyor";
-                    const sScore = pData.score || 0;
-                    const sHealth = pData.health || 100;
-                    const sSpeed = pData.speed || 0;
-                    const sAlt = pData.y || 0;
+                    const sName = pData.name || "Bilinmiyor"; const sScore = pData.score || 0; const sHealth = pData.health || 100;
+                    const sSpeed = pData.speed || 0; const sAlt = pData.y || 0;
                     updateHUD(sName, sScore, sHealth, sSpeed, sAlt);
-                } else {
-                     updateHUD("SİNYAL YOK", 0, 0, 0, 0);
-                }
+                } else { updateHUD("SİNYAL YOK", 0, 0, 0, 0); }
             }
-
             if (health > 0) {
-                if (keys.w) { 
-                    speed += 0.08 * speedFactor; 
-                    flame.visible = true; 
-                    flame.scale.setScalar(0.8 + Math.random()*0.4); 
-                } else if (keys.s) {
-                    speed -= 0.15 * speedFactor; 
-                    flame.visible = false;
-                } else { 
-                    flame.visible = false; 
-                    speed -= 0.005 * speedFactor; 
-                }
+                if (keys.w) { speed += 0.08 * speedFactor; flame.visible = true; flame.scale.setScalar(0.8 + Math.random()*0.4); } 
+                else if (keys.s) { speed -= 0.15 * speedFactor; flame.visible = false; } 
+                else { flame.visible = false; speed -= 0.005 * speedFactor; }
             } else { speed = 0; flame.visible = false; }
-
-            if(speed > maxSpeed) speed = maxSpeed; 
-            if(speed < 0) speed = 0;
-
+            if(speed > maxSpeed) speed = maxSpeed; if(speed < 0) speed = 0;
             const oldPosition = planeGroup.position.clone();
             planeGroup.translateZ(-speed * speedFactor); 
-
             frameCount++;
             if(frameCount % 3 === 0 && playerRef) {
                 set(playerRef, {
-                    name: myName,
-                    x: planeGroup.position.x,
-                    y: planeGroup.position.y,
-                    z: planeGroup.position.z,
-                    rx: planeGroup.rotation.x,
-                    ry: planeGroup.rotation.y,
-                    rz: planeGroup.rotation.z,
-                    score: score,
-                    health: health,
-                    speed: speed
+                    name: myName, x: planeGroup.position.x, y: planeGroup.position.y, z: planeGroup.position.z,
+                    rx: planeGroup.rotation.x, ry: planeGroup.rotation.y, rz: planeGroup.rotation.z,
+                    score: score, health: health, speed: speed
                 });
             }
-
             for (let i = collectables.length - 1; i >= 0; i--) {
-                const item = collectables[i];
-                item.rotation.x += 0.02 * speedFactor;
+                const item = collectables[i]; item.rotation.x += 0.02 * speedFactor;
                 const dist = planeGroup.position.distanceTo(item.position);
-                if (dist < 25) {
-                    score += item.userData.points;
-                    showScorePopup(item.userData.points);
-                    scene.remove(item); collectables.splice(i, 1);
-                }
+                if (dist < 25) { score += item.userData.points; showScorePopup(item.userData.points); scene.remove(item); collectables.splice(i, 1); }
             }
-
             playerBox.setFromObject(planeGroup).expandByScalar(-1.0);
             if (planeGroup.position.y < 600) { 
                 for (let box of buildingBoxes) {
                     if (playerBox.intersectsBox(box)) {
-                        takeDamage(20);
-                        planeGroup.position.copy(oldPosition);
-                        planeGroup.translateZ(30); planeGroup.position.y += 150; planeGroup.rotation.set(0,0,0);
+                        takeDamage(20); planeGroup.position.copy(oldPosition); planeGroup.translateZ(30); planeGroup.position.y += 150; planeGroup.rotation.set(0,0,0);
                         if (speed < liftSpeed) speed = liftSpeed;
-                        const msg = document.getElementById('message');
-                        msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 2000);
+                        const msg = document.getElementById('message'); msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 2000);
                         break;
                     }
                 }
             }
-
             if (speed > 0.5 && health > 0) {
-                const turnSpeed = 0.02 * speedFactor;
-                const rollSpeed = 0.03 * speedFactor;
-                const yawSpeed = 0.015 * speedFactor;
-
+                const turnSpeed = 0.02 * speedFactor; const rollSpeed = 0.03 * speedFactor; const yawSpeed = 0.015 * speedFactor;
                 if(keys.up && planeGroup.rotation.x < 1.0) planeGroup.rotation.x += turnSpeed;
                 if(keys.down && planeGroup.rotation.x > -1.0) planeGroup.rotation.x -= turnSpeed;
                 if (keys.left) { planeGroup.rotateY(yawSpeed); if (planeGroup.rotation.z < 0.8) planeGroup.rotation.z += rollSpeed; } 
@@ -1091,43 +847,24 @@
                     else if (planeGroup.rotation.z < -0.005) planeGroup.rotation.z += yawSpeed;
                 }
             }
-
             if (planeGroup.position.y > 2) {
-                if (speed < liftSpeed) {
-                    planeGroup.position.y -= 1.5 * (1 - speed/liftSpeed) * speedFactor;
-                    if(planeGroup.rotation.x > -0.5) planeGroup.rotation.x -= 0.01 * speedFactor;
-                }
+                if (speed < liftSpeed) { planeGroup.position.y -= 1.5 * (1 - speed/liftSpeed) * speedFactor; if(planeGroup.rotation.x > -0.5) planeGroup.rotation.x -= 0.01 * speedFactor; }
             } else {
                 if (planeGroup.position.y <= 2) {
-                    planeGroup.position.y = 2;
-                    if (planeGroup.rotation.x < -0.2) { takeDamage(10); speed = 0; }
+                    planeGroup.position.y = 2; if (planeGroup.rotation.x < -0.2) { takeDamage(10); speed = 0; }
                     if(speed < liftSpeed) { planeGroup.rotation.z *= 0.9; planeGroup.rotation.x *= 0.9; }
                 }
             }
-
-            let targetObj = planeGroup; 
-            if (spectateId && otherPlayers[spectateId]) {
-                targetObj = otherPlayers[spectateId];
-            } else if (spectateId) {
-                toggleCamera(); 
-            }
-
+            let targetObj = planeGroup; if (spectateId && otherPlayers[spectateId]) targetObj = otherPlayers[spectateId]; else if (spectateId) toggleCamera(); 
             const targetPos = new THREE.Vector3(0, 12, 45).applyMatrix4(targetObj.matrixWorld);
             camera.position.lerp(targetPos, 0.1 * speedFactor); 
-            
             const lookAtPos = new THREE.Vector3(0, 0, -60).applyMatrix4(targetObj.matrixWorld);
             camera.lookAt(lookAtPos);
-
             renderer.render(scene, camera);
         }
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // --- ADMIN SISTEMİ MANTIĞI ---
+        // --- ADMIN SISTEMİ MANTIĞI (DÜZELTİLMİŞ) ---
         const adminBtn = document.getElementById('adminOpenBtn');
         const adminPanel = document.getElementById('adminPanel');
         const adminLoginDiv = document.getElementById('adminLogin');
@@ -1135,90 +872,61 @@
         const adminPassInput = document.getElementById('adminPass');
         const adminError = document.getElementById('adminError');
         const playerSelect = document.getElementById('playerSelect');
+        const refreshListBtn = document.getElementById('refreshListBtn');
 
         adminBtn.addEventListener('click', () => {
             adminPanel.style.display = 'block';
+            if(adminDashDiv.style.display === 'flex') refreshPlayerList(); // Zaten girilmişse listeyi yenile
         });
-
-        document.getElementById('adminCloseBtn').addEventListener('click', () => {
-            adminPanel.style.display = 'none';
-        });
-
+        document.getElementById('adminCloseBtn').addEventListener('click', () => { adminPanel.style.display = 'none'; });
         document.getElementById('adminLoginBtn').addEventListener('click', () => {
             if(adminPassInput.value === 'Kral Kaybederse') {
-                adminLoginDiv.style.display = 'none';
-                adminDashDiv.style.display = 'flex';
+                adminLoginDiv.style.display = 'none'; adminDashDiv.style.display = 'flex';
                 refreshPlayerList();
             } else {
-                adminError.style.display = 'block';
-                setTimeout(() => adminError.style.display = 'none', 2000);
+                adminError.style.display = 'block'; setTimeout(() => adminError.style.display = 'none', 2000);
             }
         });
 
+        // Manuel Yenileme Fonksiyonu
         function refreshPlayerList() {
             const savedValue = playerSelect.value;
             playerSelect.innerHTML = '';
-            
             const selfOpt = document.createElement('option');
-            selfOpt.value = myPlayerId;
-            selfOpt.text = `(SEN) ${myName}`;
+            selfOpt.value = myPlayerId; selfOpt.text = `(SEN) ${myName}`;
             playerSelect.appendChild(selfOpt);
-
             Object.keys(playersDataCache).forEach(key => {
                 if(key !== myPlayerId) {
                     const p = playersDataCache[key];
                     const opt = document.createElement('option');
-                    opt.value = key;
-                    opt.text = `${p.name} (Skor: ${p.score})`;
+                    opt.value = key; opt.text = `${p.name} (Skor: ${p.score})`;
                     playerSelect.appendChild(opt);
                 }
             });
-
             if(savedValue) {
                 let exists = false;
-                for(let i=0; i<playerSelect.options.length; i++){
-                    if(playerSelect.options[i].value === savedValue) {
-                        exists = true;
-                        break;
-                    }
-                }
+                for(let i=0; i<playerSelect.options.length; i++){ if(playerSelect.options[i].value === savedValue) { exists = true; break; } }
                 if(exists) playerSelect.value = savedValue;
             }
         }
-        
-        setInterval(() => {
-            if(adminPanel.style.display === 'block') refreshPlayerList();
-        }, 5000);
+        refreshListBtn.addEventListener('click', refreshPlayerList);
 
         document.getElementById('btnSetScore').addEventListener('click', () => {
-            const targetId = playerSelect.value;
-            const val = parseInt(document.getElementById('admScoreInput').value);
+            const targetId = playerSelect.value; const val = parseInt(document.getElementById('admScoreInput').value);
             if(!targetId || isNaN(val)) return;
-
             if(targetId === myPlayerId) { score = val; }
             update(ref(db, 'players/' + targetId), { score: val });
         });
-
         document.getElementById('btnSetHealth').addEventListener('click', () => {
-            const targetId = playerSelect.value;
-            const val = parseInt(document.getElementById('admHealthInput').value);
+            const targetId = playerSelect.value; const val = parseInt(document.getElementById('admHealthInput').value);
             if(!targetId || isNaN(val)) return;
-
             if(targetId === myPlayerId) { health = val; updateHUD(myName, score, health, speed, planeGroup.position.y); }
             update(ref(db, 'players/' + targetId), { health: val });
         });
-
         document.getElementById('btnKill').addEventListener('click', () => {
-            const targetId = playerSelect.value;
-            if(!targetId) return;
-
-            if(targetId === myPlayerId) { 
-                takeDamage(1000);
-            } else {
-                update(ref(db, 'players/' + targetId), { health: 0 });
-            }
+            const targetId = playerSelect.value; if(!targetId) return;
+            if(targetId === myPlayerId) { takeDamage(1000); } else { update(ref(db, 'players/' + targetId), { health: 0 }); }
         });
-
     </script>
 </body>
 </html>
