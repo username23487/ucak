@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 ONLINE - BALANCED UNIFIED</title>
+    <title>F16 ONLINE - SYNC FIX</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -91,7 +91,7 @@
         #pcControls h3 { border-bottom: 1px solid #00ff00; padding-bottom: 5px; margin-top: 0; }
         .key-row { margin-bottom: 5px; } .key { border: 1px solid #fff; padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
 
-        /* --- ESKİ DİNAMİK MOBİL KONTROLLER --- */
+        /* --- ESKİ DİNAMİK MOBİL KONTROLLER (RADIUS 50) --- */
         #mobileControls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; pointer-events: none; }
         #touchZoneLeft { position: absolute; top: 0; left: 0; width: 50%; height: 100%; pointer-events: auto; }
         #dynamicJoystick { display: none; position: absolute; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 255, 0, 0.5); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
@@ -738,7 +738,7 @@
             const dynamicKnob = document.getElementById('dynamicKnob');
             const throttleBtn = document.getElementById('throttleBtn');
             const brakeBtnMobile = document.getElementById('brakeBtnMobile');
-            let joyCenterX, joyCenterY; const joyMaxRadius = 50; let activeTouchId = null; // RADIUS 50 OLDU
+            let joyCenterX, joyCenterY; const joyMaxRadius = 50; let activeTouchId = null;
             touchZoneLeft.addEventListener('touchstart', (e) => {
                 e.preventDefault(); const touch = e.changedTouches[0]; activeTouchId = touch.identifier;
                 joyCenterX = touch.clientX; joyCenterY = touch.clientY;
@@ -786,16 +786,19 @@
             
             drawRadar();
             
+            // Can yenilenmesi (Her 60 karede bir sunucuya bildir)
             if (health > 0 && health < 100 && Date.now() - lastDamageTime > 10000) {
                 health += 0.1 * speedFactor;
                 if (frameCount % 60 === 0) sendStatsUpdate(); 
             }
             
+            // İZLEME İNTERPOLASYONU (DÜZELTİLMİŞ)
             Object.keys(otherPlayers).forEach(key => {
                 const enemy = otherPlayers[key];
                 if(enemy.userData.targetPos) {
-                    enemy.position.lerp(enemy.userData.targetPos, 0.1 * speedFactor);
-                    enemy.quaternion.slerp(enemy.userData.targetRot, 0.1 * speedFactor);
+                    // 0.3 Değeri daha sert takip sağlar (eski 0.1'di)
+                    enemy.position.lerp(enemy.userData.targetPos, 0.3 * speedFactor);
+                    enemy.quaternion.slerp(enemy.userData.targetRot, 0.3 * speedFactor);
                 }
             });
 
@@ -819,18 +822,18 @@
             const oldPosition = planeGroup.position.clone();
             planeGroup.translateZ(-speed * speedFactor); 
 
-            // --- MANEVRA SİSTEMİ (PC VE MOBİL AYRI) ---
+            // --- MANEVRA SİSTEMİ (EŞİTLENMİŞ PC & MOBİL) ---
             if (speed > 0.5 && health > 0) {
-                // Temel Hızlar (PC İÇİN)
-                let turnSpeed = 0.045 * speedFactor;
-                let rollSpeed = 0.06 * speedFactor; 
-                let yawSpeed = 0.04 * speedFactor; 
+                // %65 Hızında Dengeli Ayarlar
+                let turnSpeed = 0.045 * speedFactor; 
+                let rollSpeed = 0.06 * speedFactor;  
+                let yawSpeed = 0.04 * speedFactor;   
 
-                // MOBİL İÇİN EŞİTLEME
+                // MOBİL VE PC AYNI HIZDA
                 if(isMobile) {
-                    turnSpeed = 0.045 * speedFactor;
-                    rollSpeed = 0.06 * speedFactor;
-                    yawSpeed = 0.04 * speedFactor;
+                    turnSpeed *= 0.65; // Mobil hassasiyeti %65
+                    rollSpeed *= 0.65;
+                    yawSpeed *= 0.65;
                 }
 
                 if(keys.up && planeGroup.rotation.x < 1.2) planeGroup.rotation.x += turnSpeed;
@@ -864,12 +867,17 @@
             
             let targetObj = planeGroup; if (spectateId && otherPlayers[spectateId]) targetObj = otherPlayers[spectateId]; else if (spectateId) toggleCamera(); 
             const targetPos = new THREE.Vector3(0, 12, 45).applyMatrix4(targetObj.matrixWorld);
-            camera.position.lerp(targetPos, 0.1 * speedFactor); 
+            
+            // KAMERA YUMUŞATMASI (İzleme sırasında titremeyi önler)
+            const camLerp = (spectateId !== null) ? 0.05 * speedFactor : 0.1 * speedFactor;
+            camera.position.lerp(targetPos, camLerp); 
+            
             const lookAtPos = new THREE.Vector3(0, 0, -60).applyMatrix4(targetObj.matrixWorld);
             camera.lookAt(lookAtPos);
             
             frameCount++;
-            if(frameCount % 3 === 0 && playerRef) {
+            // GÜNCELLEME SIKLIĞI (2 karede bir - Daha akıcı)
+            if(frameCount % 2 === 0 && playerRef) {
                 update(playerRef, {
                     name: myName, x: planeGroup.position.x, y: planeGroup.position.y, z: planeGroup.position.z,
                     rx: planeGroup.rotation.x, ry: planeGroup.rotation.y, rz: planeGroup.rotation.z,
@@ -926,6 +934,7 @@
             }
         });
 
+        // Manuel Yenileme Fonksiyonu
         function refreshPlayerList() {
             if(!myPlayerId) return; 
             const savedValue = playerSelect.value;
