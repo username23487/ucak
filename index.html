@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 ONLINE - PERFECT SENSITIVITY</title>
+    <title>F16 ONLINE - MOBILE NERF</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -91,12 +91,15 @@
         #pcControls h3 { border-bottom: 1px solid #00ff00; padding-bottom: 5px; margin-top: 0; }
         .key-row { margin-bottom: 5px; } .key { border: 1px solid #fff; padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
 
+        /* --- ESKİ DİNAMİK MOBİL KONTROLLER (GERİ GETİRİLDİ) --- */
         #mobileControls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; pointer-events: none; }
         #touchZoneLeft { position: absolute; top: 0; left: 0; width: 50%; height: 100%; pointer-events: auto; }
         #dynamicJoystick { display: none; position: absolute; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 255, 0, 0.5); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
         #dynamicKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: rgba(0, 255, 0, 0.8); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 15px #00ff00; }
+        
         #throttleBtn { position: absolute; bottom: 40px; right: 40px; width: 90px; height: 90px; background: rgba(0, 255, 0, 0.2); border: 3px solid #00ff00; border-radius: 50%; color: white; font-weight: bold; font-family: monospace; font-size: 16px; display: flex; justify-content: center; align-items: center; pointer-events: auto; user-select: none; }
         #throttleBtn:active { background: rgba(0, 255, 0, 0.6); box-shadow: 0 0 20px #00ff00; }
+        
         #brakeBtnMobile { position: absolute; bottom: 40px; right: 150px; width: 70px; height: 70px; background: rgba(255, 0, 0, 0.2); border: 3px solid #ff0000; border-radius: 50%; color: white; font-weight: bold; font-family: monospace; font-size: 14px; display: flex; justify-content: center; align-items: center; pointer-events: auto; user-select: none; }
         #brakeBtnMobile:active { background: rgba(255, 0, 0, 0.6); box-shadow: 0 0 20px red; }
 
@@ -670,9 +673,7 @@
         const keys = { w: false, s: false, up: false, down: false, left: false, right: false };
         const maxSpeed = 12.0, liftSpeed = 3.0;
 
-        // --- İSTATİSTİK GÜNCELLEME FONKSİYONU (DÜZELTME BURADA) ---
-        // Can veya Skor değiştiğinde bu fonksiyonu çağıracağız.
-        // Böylece sürekli döngü içinde yazıp Admin verisini ezmeyeceğiz.
+        // --- İSTATİSTİK GÜNCELLEME FONKSİYONU ---
         function sendStatsUpdate() {
             if(playerRef) {
                 update(playerRef, { health: health, score: score });
@@ -681,12 +682,12 @@
 
         function resetGameVars() {
             speed = 0; health = 100;
-            score = Math.max(0, score - 1000); // Ölüm cezası
+            score = Math.max(0, score - 1000); 
             flame.visible = false;
             keys.w = false; keys.s = false; keys.up = false; keys.down = false; keys.left = false; keys.right = false;
             planeGroup.position.set(0, 2, 0); planeGroup.rotation.set(0, 0, 0);
             document.getElementById('scoreDisplay').innerText = score;
-            sendStatsUpdate(); // Sadece olay anında gönder
+            sendStatsUpdate(); 
         }
 
         function takeDamage(amount) {
@@ -697,7 +698,7 @@
                 health = 0; 
                 document.getElementById('gameOverScreen').style.display = 'flex'; 
             }
-            sendStatsUpdate(); // Sadece olay anında gönder
+            sendStatsUpdate(); 
         }
 
         function updateHUD(currentName, currentScore, currentHealth, currentSpeed, currentAlt) {
@@ -785,7 +786,6 @@
             
             drawRadar();
             
-            // Can yenilenmesi (Her 60 karede bir sunucuya bildir)
             if (health > 0 && health < 100 && Date.now() - lastDamageTime > 10000) {
                 health += 0.1 * speedFactor;
                 if (frameCount % 60 === 0) sendStatsUpdate(); 
@@ -819,22 +819,30 @@
             const oldPosition = planeGroup.position.clone();
             planeGroup.translateZ(-speed * speedFactor); 
 
-            // --- NERFLENMİŞ ARCADE MANEVRA SİSTEMİ ---
+            // --- MANEVRA SİSTEMİ (MOBİL NERF DAHİL) ---
             if (speed > 0.5 && health > 0) {
-                const turnSpeed = 0.025 * speedFactor; 
-                const rollSpeed = 0.035 * speedFactor;  
-                const yawSpeed = 0.02 * speedFactor;   
+                // Temel Hızlar (PC İÇİN)
+                let turnSpeed = 0.06 * speedFactor;
+                let rollSpeed = 0.08 * speedFactor; 
+                let yawSpeed = 0.05 * speedFactor; 
+
+                // MOBİL İÇİN %60 AZALTMA
+                if(isMobile) {
+                    turnSpeed *= 0.4;
+                    rollSpeed *= 0.4;
+                    yawSpeed *= 0.4;
+                }
 
                 if(keys.up && planeGroup.rotation.x < 1.2) planeGroup.rotation.x += turnSpeed;
                 if(keys.down && planeGroup.rotation.x > -1.2) planeGroup.rotation.x -= turnSpeed;
                 
                 if (keys.left) { 
                     planeGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), yawSpeed);
-                    if (planeGroup.rotation.z < 0.9) planeGroup.rotation.z += rollSpeed; 
+                    if (planeGroup.rotation.z < 1.1) planeGroup.rotation.z += rollSpeed; 
                 } 
                 else if (keys.right) { 
                     planeGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -yawSpeed);
-                    if (planeGroup.rotation.z > -0.9) planeGroup.rotation.z -= rollSpeed; 
+                    if (planeGroup.rotation.z > -1.1) planeGroup.rotation.z -= rollSpeed; 
                 } 
                 else {
                     if (planeGroup.rotation.z > 0.005) planeGroup.rotation.z -= yawSpeed;
@@ -861,8 +869,6 @@
             camera.lookAt(lookAtPos);
             
             frameCount++;
-            // BURASI DÜZELTİLDİ: Score ve Health'i sürekli göndermiyoruz!
-            // Sadece fiziksel konumu gönderiyoruz.
             if(frameCount % 3 === 0 && playerRef) {
                 update(playerRef, {
                     name: myName, x: planeGroup.position.x, y: planeGroup.position.y, z: planeGroup.position.z,
@@ -915,7 +921,6 @@
             if(adminPassInput.value === 'Kral Kaybederse') {
                 adminLoginDiv.style.display = 'none'; adminDashDiv.style.display = 'flex';
                 refreshPlayerList();
-                // Otomatik yenilemeyi kapattım! Sadece manuel.
             } else {
                 adminError.style.display = 'block'; setTimeout(() => adminError.style.display = 'none', 2000);
             }
