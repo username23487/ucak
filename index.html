@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>F16 ONLINE - MOBILE NERF</title>
+    <title>F16 ONLINE - BALANCED UNIFIED</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
         
@@ -91,7 +91,7 @@
         #pcControls h3 { border-bottom: 1px solid #00ff00; padding-bottom: 5px; margin-top: 0; }
         .key-row { margin-bottom: 5px; } .key { border: 1px solid #fff; padding: 2px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
 
-        /* --- ESKİ DİNAMİK MOBİL KONTROLLER (GERİ GETİRİLDİ) --- */
+        /* --- ESKİ DİNAMİK MOBİL KONTROLLER --- */
         #mobileControls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; pointer-events: none; }
         #touchZoneLeft { position: absolute; top: 0; left: 0; width: 50%; height: 100%; pointer-events: auto; }
         #dynamicJoystick { display: none; position: absolute; width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 255, 0, 0.5); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
@@ -738,7 +738,7 @@
             const dynamicKnob = document.getElementById('dynamicKnob');
             const throttleBtn = document.getElementById('throttleBtn');
             const brakeBtnMobile = document.getElementById('brakeBtnMobile');
-            let joyCenterX, joyCenterY; const joyMaxRadius = 40; let activeTouchId = null;
+            let joyCenterX, joyCenterY; const joyMaxRadius = 50; let activeTouchId = null; // RADIUS 50 OLDU
             touchZoneLeft.addEventListener('touchstart', (e) => {
                 e.preventDefault(); const touch = e.changedTouches[0]; activeTouchId = touch.identifier;
                 joyCenterX = touch.clientX; joyCenterY = touch.clientY;
@@ -819,18 +819,18 @@
             const oldPosition = planeGroup.position.clone();
             planeGroup.translateZ(-speed * speedFactor); 
 
-            // --- MANEVRA SİSTEMİ (MOBİL NERF DAHİL) ---
+            // --- MANEVRA SİSTEMİ (PC VE MOBİL AYRI) ---
             if (speed > 0.5 && health > 0) {
                 // Temel Hızlar (PC İÇİN)
-                let turnSpeed = 0.06 * speedFactor;
-                let rollSpeed = 0.08 * speedFactor; 
-                let yawSpeed = 0.05 * speedFactor; 
+                let turnSpeed = 0.045 * speedFactor;
+                let rollSpeed = 0.06 * speedFactor; 
+                let yawSpeed = 0.04 * speedFactor; 
 
-                // MOBİL İÇİN %60 AZALTMA
+                // MOBİL İÇİN EŞİTLEME
                 if(isMobile) {
-                    turnSpeed *= 0.4;
-                    rollSpeed *= 0.4;
-                    yawSpeed *= 0.4;
+                    turnSpeed = 0.045 * speedFactor;
+                    rollSpeed = 0.06 * speedFactor;
+                    yawSpeed = 0.04 * speedFactor;
                 }
 
                 if(keys.up && planeGroup.rotation.x < 1.2) planeGroup.rotation.x += turnSpeed;
@@ -884,7 +884,7 @@
                     score += item.userData.points; 
                     showScorePopup(item.userData.points); 
                     scene.remove(item); collectables.splice(i, 1); 
-                    sendStatsUpdate(); // Olay anında gönder
+                    sendStatsUpdate(); 
                 }
             }
             playerBox.setFromObject(planeGroup).expandByScalar(-1.0);
@@ -926,7 +926,6 @@
             }
         });
 
-        // Manuel Yenileme Fonksiyonu
         function refreshPlayerList() {
             if(!myPlayerId) return; 
             const savedValue = playerSelect.value;
